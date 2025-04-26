@@ -19,6 +19,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentDTO mapToDTO(Comment comment) {
         return CommentDTO.builder()
                 .id(comment.getId())
+                .postid(comment.getPostid())
                 .comment(comment.getComment())
                 .build();
     }
@@ -26,6 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private Comment mapToEntity(CommentDTO dto) {
         return Comment.builder()
                 .id(dto.getId())
+                .postid(dto.getPostid())
                 .comment(dto.getComment())
                 .build();
     }
