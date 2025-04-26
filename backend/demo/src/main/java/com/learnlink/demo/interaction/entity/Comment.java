@@ -1,8 +1,5 @@
 package com.learnlink.demo.interaction.entity;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +13,7 @@ public class Comment {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String postId;
     private String comment;
     
 }

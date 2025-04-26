@@ -19,7 +19,7 @@ public class CommentServiceImpl implements CommentService {
     private CommentDTO mapToDTO(Comment comment) {
         return CommentDTO.builder()
                 .id(comment.getId())
-                .postid(comment.getPostid())
+                .postId(comment.getPostId())
                 .comment(comment.getComment())
                 .build();
     }
@@ -27,7 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private Comment mapToEntity(CommentDTO dto) {
         return Comment.builder()
                 .id(dto.getId())
-                .postid(dto.getPostid())
+                .postId(dto.getPostId())
                 .comment(dto.getComment())
                 .build();
     }
@@ -51,6 +51,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentDTO updateComment(Long id, CommentDTO dto) {
         Comment comment = repository.findById(id).orElseThrow();
         comment.setComment(dto.getComment());
+        comment.setPostId(dto.getPostId());
         return mapToDTO(repository.save(comment));
     }
 
