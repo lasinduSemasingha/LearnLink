@@ -1,5 +1,4 @@
 package com.learnlink.demo.notification.service;
-import com.learnlink.demo.learning.dto.CourseDTO;
 import com.learnlink.demo.notification.dto.NotificationDTO;
 
 
