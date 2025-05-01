@@ -70,6 +70,7 @@ public class CommentController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         // Call service to delete the comment
         commentService.deleteComment(id);
+         // Return HTTP 204 No Content
         return ResponseEntity.noContent().build();
     }
 }
