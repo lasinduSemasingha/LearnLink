@@ -19,6 +19,7 @@ import {
   MarkEmailRead as MarkReadIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -33,6 +34,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -116,6 +118,8 @@ const Notifications = () => {
           {notifications.map((notification, index) => (
             <Box key={notification.id}>
               <ListItem 
+              button 
+              onClick={() => navigate(`/notifications/${notification.id}`)}
                 sx={{
                   backgroundColor: notification.status ? 'inherit' : 'rgba(25, 118, 210, 0.08)',
                   transition: 'background-color 0.3s ease',

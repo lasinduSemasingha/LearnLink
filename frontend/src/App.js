@@ -10,6 +10,8 @@ import Notifications from './pages/Notifications';
 import PostDetails from './pages/PostDetails';
 import CourseDetails from './pages/CourseDetails';
 import PostList from './components/posts/PostList';
+import NotificationDetail from './components/notifications/NotificationDetail';
+import UpdatePostPage from './components/posts/UpdatePostPage';
 
 const App = () => {
   const theme = useTheme();
@@ -80,6 +82,8 @@ const App = () => {
                 <Route path="/posts/:id" element={<PostDetails />} />
                 <Route path="/courses/:id" element={<CourseDetails />} />
                 <Route path="/posts" element={<PostList />} />
+                <Route path="/notifications/:id" element={<NotificationDetail />} />
+                <Route path="/posts/update/:id" element={<UpdatePostPage />} />
               </Routes>
               <Box sx={{ mt: 'auto', pt: 4 }}>
                 <Footer />
