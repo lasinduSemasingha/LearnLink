@@ -14,4 +14,4 @@ public interface NotificationService {
     void deleteNotification(Long id);
 }
 //check view all notification
-
+//check view id notification
