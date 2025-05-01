@@ -42,7 +42,7 @@ public class NotificationServiceImpl implements NotificationService {
         public NotificationDTO getNotification(Long id) {
             return repository.findById(id).map(this::mapToDTO).orElse(null);
         }
-
+        //getAllNotification
         @Override
         public List<NotificationDTO> getAllNotification() {
             return repository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
