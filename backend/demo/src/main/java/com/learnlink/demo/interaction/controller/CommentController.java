@@ -65,6 +65,7 @@ public class CommentController {
         return ResponseEntity.ok(updated);
     }
 
+    //handle DELETE requests to remove a comment by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         commentService.deleteComment(id);
