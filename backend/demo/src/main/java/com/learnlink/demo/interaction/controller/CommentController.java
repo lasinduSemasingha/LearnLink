@@ -27,6 +27,7 @@ public class CommentController {
    @Autowired
     private CommentService commentService;
 
+    // Handle POST requests to create a new comment
     @PostMapping
     public ResponseEntity<CommentDTO> create(@RequestBody CommentDTO dto) {
         return ResponseEntity.ok(commentService.createComment(dto));
