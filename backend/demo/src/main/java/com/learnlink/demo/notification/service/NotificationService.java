@@ -16,3 +16,4 @@ public interface NotificationService {
 //check view all notification
 //check view id notification
 //check update notification
+//check delete notification
