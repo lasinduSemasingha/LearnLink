@@ -4,6 +4,7 @@ import com.learnlink.demo.notification.dto.NotificationDTO;
 
 import java.util.List;
 //check crud full
+//check create 
 public interface NotificationService {
 
     NotificationDTO createNotification(NotificationDTO dto);
