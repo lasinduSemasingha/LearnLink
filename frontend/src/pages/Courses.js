@@ -22,6 +22,9 @@ import {
   Videocam,
 } from '@mui/icons-material';
 
+// Consistent technical development image URL
+const TECH_IMAGE_URL = 'https://picsum.photos/600/400?random=1'; // example static coding image
+
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +47,7 @@ const Courses = () => {
           price: Math.floor(Math.random() * 50) + 20,
           discountPrice: Math.floor(Math.random() * 20) + 10,
           category: ['Programming', 'Development', 'IT & Software'][Math.floor(Math.random() * 3)],
-          image: `https://source.unsplash.com/random/300x200/?${encodeURIComponent(course.title)}`
+          image: TECH_IMAGE_URL // Using the same image for all courses
         }));
         setCourses(enhancedCourses);
       } catch (err) {
@@ -103,15 +106,14 @@ const Courses = () => {
               <Card sx={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                height: '460px', // Fixed height
-                width: '100%',   // Takes full grid width
+                height: '460px',
+                width: '100%',
                 transition: 'transform 0.3s',
                 '&:hover': {
                   transform: 'translateY(-5px)',
                   boxShadow: 6
                 }
               }}>
-                {/* Fixed Image Size */}
                 <CardMedia
                   component="img"
                   height="140"
@@ -124,7 +126,6 @@ const Courses = () => {
                   }}
                 />
 
-                {/* Card Content (Fixed Height) */}
                 <CardContent sx={{ 
                   flex: '1 1 auto',
                   overflow: 'hidden',
@@ -140,7 +141,6 @@ const Courses = () => {
                     />
                   </Box>
 
-                  {/* Fixed Title Height */}
                   <Typography 
                     variant="h6" 
                     component="h3" 
@@ -151,14 +151,13 @@ const Courses = () => {
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      minHeight: '3em', // 2 lines of text
+                      minHeight: '3em',
                       lineHeight: '1.5em'
                     }}
                   >
                     {course.title}
                   </Typography>
 
-                  {/* Fixed Description Height */}
                   <Typography 
                     variant="body2" 
                     color="text.secondary" 
@@ -168,14 +167,13 @@ const Courses = () => {
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      minHeight: '2.8em', // 2 lines of text
+                      minHeight: '2.8em',
                       lineHeight: '1.4em'
                     }}
                   >
                     {course.description}
                   </Typography>
 
-                  {/* Rating & Instructor (Fixed Height) */}
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <Rating 
                       value={parseFloat(course.rating)} 
@@ -196,7 +194,6 @@ const Courses = () => {
                     <Typography variant="caption">{course.instructor}</Typography>
                   </Box>
 
-                  {/* Course Metadata (Fixed Height) */}
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -220,7 +217,6 @@ const Courses = () => {
                   </Box>
                 </CardContent>
 
-                {/* Price & Button (Fixed Position at Bottom) */}
                 <Box sx={{ 
                   p: 2, 
                   borderTop: '1px solid rgba(0,0,0,0.12)',
