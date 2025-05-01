@@ -8,7 +8,7 @@ public interface CommentService {
 
     CommentDTO createComment(CommentDTO dto);
     CommentDTO getComment(Long id);
-    List<CommentDTO> getAllComment();
+    List<CommentDTO> getAllComment(); // Method to retrieve a list of all comments
     CommentDTO updateComment(Long id, CommentDTO dto);
     void deleteComment(Long id); // Method to delete a comment by its ID
     
