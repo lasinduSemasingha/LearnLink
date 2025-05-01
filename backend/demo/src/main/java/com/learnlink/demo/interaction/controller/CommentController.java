@@ -37,6 +37,7 @@ public class CommentController {
     // Handle GET requests to retrieve a single comment by ID
     @GetMapping("/{id}")
     public ResponseEntity<CommentDTO> get(@PathVariable Long id) {
+        // Retrieve comment from service
         CommentDTO comment = commentService.getComment(id);
         if (comment == null) {
             throw new ResourceNotFoundException("Comment not found with id: " + id);
