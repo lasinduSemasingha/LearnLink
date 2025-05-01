@@ -57,6 +57,7 @@ public class CommentController {
     // Handle PUT requests to update an existing comment
     @PutMapping("/{id}")
     public ResponseEntity<CommentDTO> update(@PathVariable Long id, @RequestBody CommentDTO dto) {
+         // Update the comment using the service
         CommentDTO updated = commentService.updateComment(id, dto);
         if (updated == null) {
             throw new ResourceNotFoundException("Comment not found with id: " + id);
