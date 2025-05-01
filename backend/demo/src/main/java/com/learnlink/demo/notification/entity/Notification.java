@@ -1,6 +1,6 @@
 package com.learnlink.demo.notification.entity;
 
-
+//check identities
 import jakarta.persistence.*;
 import lombok.*;
 
