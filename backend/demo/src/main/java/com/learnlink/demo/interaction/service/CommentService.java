@@ -10,6 +10,6 @@ public interface CommentService {
     CommentDTO getComment(Long id);
     List<CommentDTO> getAllComment();
     CommentDTO updateComment(Long id, CommentDTO dto);
-    void deleteComment(Long id);
+    void deleteComment(Long id); // Method to delete a comment by its ID
     
 }
