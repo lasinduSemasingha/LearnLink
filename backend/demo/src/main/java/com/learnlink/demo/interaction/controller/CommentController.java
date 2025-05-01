@@ -54,6 +54,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getAllComment());
     }
 
+    // Handle PUT requests to update an existing comment
     @PutMapping("/{id}")
     public ResponseEntity<CommentDTO> update(@PathVariable Long id, @RequestBody CommentDTO dto) {
         CommentDTO updated = commentService.updateComment(id, dto);
