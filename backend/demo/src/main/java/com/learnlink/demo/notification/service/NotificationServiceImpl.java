@@ -34,7 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .status(dto.getStatus())
                     .build();
         }
-
+        //createNotification
         @Override
         public NotificationDTO createNotification(NotificationDTO dto) {
             return mapToDTO(repository.save(mapToEntity(dto)));
