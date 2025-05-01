@@ -43,6 +43,7 @@ public class CommentController {
         if (comment == null) {
             throw new ResourceNotFoundException("Comment not found with id: " + id);
         }
+        // Return the found comment
         return ResponseEntity.ok(comment);
     }
 
