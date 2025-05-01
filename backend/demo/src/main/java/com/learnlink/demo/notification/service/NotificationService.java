@@ -13,4 +13,5 @@ public interface NotificationService {
     NotificationDTO updateNotification(Long id, NotificationDTO dto);
     void deleteNotification(Long id);
 }
+//check view all notification
 
