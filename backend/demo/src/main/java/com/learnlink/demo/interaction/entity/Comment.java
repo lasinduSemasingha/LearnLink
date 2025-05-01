@@ -13,7 +13,7 @@ public class Comment {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; 
-    private String postId;
+    private String postId; // Field to store the ID of the related post 
     private String comment;
     
 }
