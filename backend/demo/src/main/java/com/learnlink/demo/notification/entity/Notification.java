@@ -17,4 +17,5 @@ public class Notification {
     private String title;
     private String description;
     private String sender;
+    private Boolean status;
 }
