@@ -1,7 +1,7 @@
 package com.learnlink.demo.notification.dto;
 
 import lombok.*;
-
+//check notifi dto file
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
