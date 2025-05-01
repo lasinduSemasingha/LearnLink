@@ -14,6 +14,6 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; 
     private String postId; // Field to store the ID of the related post 
-    private String comment;
+    private String comment; // Field to store the actual comment content
     
 }
