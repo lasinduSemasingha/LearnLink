@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.management.Notification;
+//import javax.management.Notification;
 import java.util.List;
-
+//add getall method
 @RestController
 @RequestMapping("/api/notification")
 @CrossOrigin("*")
