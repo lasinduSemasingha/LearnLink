@@ -39,6 +39,7 @@ public class CommentController {
     public ResponseEntity<CommentDTO> get(@PathVariable Long id) {
         // Retrieve comment from service
         CommentDTO comment = commentService.getComment(id);
+        // If comment not found, throw custom exception
         if (comment == null) {
             throw new ResourceNotFoundException("Comment not found with id: " + id);
         }
