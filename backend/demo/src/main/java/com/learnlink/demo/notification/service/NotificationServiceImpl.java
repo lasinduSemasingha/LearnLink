@@ -39,7 +39,7 @@ public class NotificationServiceImpl implements NotificationService {
         public NotificationDTO createNotification(NotificationDTO dto) {
             return mapToDTO(repository.save(mapToEntity(dto)));
         }
-
+        //getNotification
         @Override
         public NotificationDTO getNotification(Long id) {
             return repository.findById(id).map(this::mapToDTO).orElse(null);
