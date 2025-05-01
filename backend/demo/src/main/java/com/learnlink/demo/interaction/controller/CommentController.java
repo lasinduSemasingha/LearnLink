@@ -47,6 +47,7 @@ public class CommentController {
         return ResponseEntity.ok(comment);
     }
 
+    // Handle GET requests to retrieve all comments
     @GetMapping
     public ResponseEntity<List<CommentDTO>> getAll() {
         return ResponseEntity.ok(commentService.getAllComment());
