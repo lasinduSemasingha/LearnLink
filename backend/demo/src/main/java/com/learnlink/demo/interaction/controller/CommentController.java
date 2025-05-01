@@ -34,6 +34,7 @@ public class CommentController {
         return ResponseEntity.ok(commentService.createComment(dto));
     }
 
+    // Handle GET requests to retrieve a single comment by ID
     @GetMapping("/{id}")
     public ResponseEntity<CommentDTO> get(@PathVariable Long id) {
         CommentDTO comment = commentService.getComment(id);
