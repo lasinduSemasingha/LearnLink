@@ -30,6 +30,7 @@ public class CommentController {
     // Handle POST requests to create a new comment
     @PostMapping
     public ResponseEntity<CommentDTO> create(@RequestBody CommentDTO dto) {
+        // Call service to create a comment and return it with HTTP 200 OK
         return ResponseEntity.ok(commentService.createComment(dto));
     }
 
