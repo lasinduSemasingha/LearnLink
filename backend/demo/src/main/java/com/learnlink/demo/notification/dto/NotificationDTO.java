@@ -13,4 +13,5 @@ public class NotificationDTO {
     private String title;
     private String description;
     private String sender;
+    private Boolean status;
 }
