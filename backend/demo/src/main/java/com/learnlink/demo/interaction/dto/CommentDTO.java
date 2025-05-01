@@ -9,7 +9,7 @@ import lombok.*;
 public class CommentDTO {
 
     private Long id; // Unique identifier for the comment
-    private String postId;
+    private String postId; // ID of the post this comment is related to
     private String comment;
       
 }
