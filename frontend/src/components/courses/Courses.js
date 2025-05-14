@@ -100,15 +100,14 @@ const Courses = () => {
           No courses available at the moment.
         </Typography>
       ) : (
-        <Grid container spacing={4}>
+        <Grid container spacing={3}>
           {courses.map((course) => (
-            <Grid item key={course.id} xs={12} sm={6} md={4} lg={3}>
+            <Grid item key={course.id} xs={12} sm={6} md={4}>
               <Card sx={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                height: '460px',
-                width: '100%',
-                transition: 'transform 0.3s',
+                height: '100%',
+                transition: 'transform 0.3s, box-shadow 0.3s',
                 '&:hover': {
                   transform: 'translateY(-5px)',
                   boxShadow: 6
@@ -128,10 +127,10 @@ const Courses = () => {
 
                 <CardContent sx={{ 
                   flex: '1 1 auto',
-                  overflow: 'hidden',
-                  p: 2,
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  p: 2,
+                  pb: 0
                 }}>
                   <Box sx={{ mb: 1 }}>
                     <Chip 
@@ -164,10 +163,10 @@ const Courses = () => {
                     sx={{ 
                       mb: 2,
                       display: '-webkit-box',
-                      WebkitLineClamp: 2,
+                      WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      minHeight: '2.8em',
+                      minHeight: '4.2em',
                       lineHeight: '1.4em'
                     }}
                   >
@@ -183,7 +182,7 @@ const Courses = () => {
                       size="small"
                     />
                     <Typography variant="caption" sx={{ ml: 0.5 }}>
-                      {course.rating} ({course.students})
+                      {course.rating} ({course.students.toLocaleString()})
                     </Typography>
                   </Box>
 
@@ -204,7 +203,7 @@ const Courses = () => {
                   }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <People fontSize="small" sx={{ mr: 0.5, fontSize: '1rem' }} />
-                      <Typography variant="caption">{course.students}</Typography>
+                      <Typography variant="caption">{course.students.toLocaleString()}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <AccessTime fontSize="small" sx={{ mr: 0.5, fontSize: '1rem' }} />
@@ -219,8 +218,7 @@ const Courses = () => {
 
                 <Box sx={{ 
                   p: 2, 
-                  borderTop: '1px solid rgba(0,0,0,0.12)',
-                  mt: 'auto'
+                  borderTop: '1px solid rgba(0,0,0,0.12)'
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box>

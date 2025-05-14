@@ -5,7 +5,7 @@ import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Footer from './components/common/Footer';
 import Home from './pages/Home';
-import Courses from './pages/Courses';
+import Courses from './components/courses/Courses';
 import Notifications from './pages/Notifications';
 import PostDetails from './pages/PostDetails';
 import CourseDetails from './pages/CourseDetails';
