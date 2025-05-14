@@ -20,9 +20,24 @@ import {
   DialogActions,
   ListItemSecondaryAction,
   Snackbar,
-  Alert
+  Alert,
+  Chip,
+  Menu,
+  MenuItem
 } from '@mui/material';
-import { Favorite, Comment, Share, MoreVert, Send, Delete } from '@mui/icons-material';
+import { 
+  ThumbUp, 
+  ChatBubbleOutline, 
+  Share, 
+  MoreVert, 
+  Send, 
+  Delete, 
+  Bookmark, 
+  ThumbUpAltOutlined,
+  EmojiEmotions,
+  InsertPhoto,
+  Flag
+} from '@mui/icons-material';
 
 const POST_IMAGE_URL = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80";
 
@@ -36,6 +51,10 @@ const PostList = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [commentAnchorEl, setCommentAnchorEl] = useState(null);
+  const [activeComment, setActiveComment] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +80,26 @@ const PostList = () => {
     fetchData();
   }, []);
 
+  const handleMenuOpen = (event, postId) => {
+    setAnchorEl(event.currentTarget);
+    setActiveComment(postId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setActiveComment(null);
+  };
+
+  const handleCommentMenuOpen = (event, commentId) => {
+    setCommentAnchorEl(event.currentTarget);
+    setActiveComment(commentId);
+  };
+
+  const handleCommentMenuClose = () => {
+    setCommentAnchorEl(null);
+    setActiveComment(null);
+  };
+
   const handleCommentClick = (postId) => {
     setOpenComments(postId);
   };
@@ -75,7 +114,6 @@ const PostList = () => {
     try {
       setCommentLoading(true);
       
-      // Make API call to add comment
       const response = await fetch('http://localhost:8085/api/comments', {
         method: 'POST',
         headers: {
@@ -87,13 +125,9 @@ const PostList = () => {
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add comment');
-      }
+      if (!response.ok) throw new Error('Failed to add comment');
 
       const addedComment = await response.json();
-      
-      // Update local state with the new comment from the server
       setAllComments(prev => [...prev, addedComment]);
       setNewComment('');
       setSnackbarMessage('Comment added successfully!');
@@ -109,16 +143,12 @@ const PostList = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      // Make API call to delete comment
       const response = await fetch(`http://localhost:8085/api/comments/${commentId}`, {
         method: 'DELETE'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete comment');
-      }
+      if (!response.ok) throw new Error('Failed to delete comment');
 
-      // Update local state
       setAllComments(prev => prev.filter(comment => comment.id !== commentId));
       setSnackbarMessage('Comment deleted successfully!');
       setSnackbarOpen(true);
@@ -126,6 +156,14 @@ const PostList = () => {
       setError(err.message);
       setSnackbarMessage('Failed to delete comment');
       setSnackbarOpen(true);
+    }
+  };
+
+  const handleLikePost = (postId) => {
+    if (likedPosts.includes(postId)) {
+      setLikedPosts(likedPosts.filter(id => id !== postId));
+    } else {
+      setLikedPosts([...likedPosts, postId]);
     }
   };
 
@@ -154,39 +192,65 @@ const PostList = () => {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ 
-        fontWeight: 'bold', 
-        mb: 3,
-        color: 'primary.main',
-        textAlign: 'center'
+    <Container maxWidth="md" sx={{ py: 2 }}>
+      {/* Create Post Card (Facebook-style) */}
+      <Paper elevation={0} sx={{ 
+        mb: 3, 
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 2
       }}>
-        Community Feed
-      </Typography>
-      
+        <Box display="flex" alignItems="center" mb={2}>
+          <Avatar sx={{ mr: 2 }}>U</Avatar>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            placeholder="What's on your mind?"
+            InputProps={{
+              sx: {
+                borderRadius: 6,
+                backgroundColor: 'background.default',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }
+            }}
+          />
+        </Box>
+        <Divider sx={{ my: 1 }} />
+        <Box display="flex" justifyContent="space-between">
+          <Button startIcon={<InsertPhoto color="primary" />} sx={{ borderRadius: 6 }}>
+            Photo
+          </Button>
+          <Button startIcon={<EmojiEmotions color="secondary" />} sx={{ borderRadius: 6 }}>
+            Feeling
+          </Button>
+        </Box>
+      </Paper>
+
       {posts.length === 0 ? (
         <Typography variant="body1" color="textSecondary" align="center">
-          No posts available. Be the first to share your skills!
+          No posts available. Be the first to share!
         </Typography>
       ) : (
         posts.map(post => (
           <Paper 
             key={post.id} 
-            elevation={3} 
+            elevation={0}
             sx={{ 
               mb: 3, 
               borderRadius: 2,
-              overflow: 'hidden',
-              transition: 'transform 0.2s',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: 6
-              }
+              border: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden'
             }}
           >
             {/* Post Header */}
-            <Box display="flex" alignItems="center" p={2}>
-              <Avatar sx={{ mr: 2, bgcolor: 'secondary.main' }}>
+            <Box display="flex" alignItems="center" p={2} pb={1}>
+              <Avatar sx={{ mr: 2, width: 40, height: 40 }}>
                 {post.userName?.charAt(0) || 'U'}
               </Avatar>
               <Box flexGrow={1}>
@@ -194,19 +258,41 @@ const PostList = () => {
                   {post.userName || 'Anonymous User'}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
-                  {new Date(post.date || Date.now()).toLocaleDateString()}
+                  {new Date(post.date || Date.now()).toLocaleDateString()} • 
+                  <Box component="span" sx={{ ml: 0.5 }}>
+                    <Chip 
+                      label="Public" 
+                      size="small" 
+                      sx={{ 
+                        height: 18, 
+                        fontSize: '0.65rem',
+                        '& .MuiChip-label': { px: 0.5 }
+                      }} 
+                    />
+                  </Box>
                 </Typography>
               </Box>
-              <IconButton>
+              <IconButton onClick={(e) => handleMenuOpen(e, post.id)}>
                 <MoreVert />
               </IconButton>
+              
+              {/* Post Options Menu */}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl) && activeComment === post.id}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleMenuClose}>
+                  <Bookmark sx={{ mr: 1 }} /> Save post
+                </MenuItem>
+                <MenuItem onClick={handleMenuClose}>
+                  <Flag sx={{ mr: 1 }} /> Report post
+                </MenuItem>
+              </Menu>
             </Box>
             
             {/* Post Content */}
             <Box p={2} pt={0}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                {post.title}
-              </Typography>
               <Typography variant="body1" paragraph>
                 {post.description}
               </Typography>
@@ -217,62 +303,144 @@ const PostList = () => {
                 mb={2}
                 overflow="hidden"
                 sx={{
-                  height: '300px',
+                  height: '400px',
                   backgroundImage: `url(${POST_IMAGE_URL})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  '&:before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                    backgroundColor: 'rgba(0,0,0,0.1)'
-                  }
+                  cursor: 'pointer'
                 }}
-              >
-                <Typography 
-                  variant="caption" 
-                  color="white" 
-                  sx={{ 
-                    position: 'relative',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                    mb: 1
-                  }}
-                >
-                  Skill Sharing Community
+              />
+              
+              {/* Like/Comment Count */}
+              <Box display="flex" justifyContent="space-between" mb={1}>
+                <Box display="flex" alignItems="center">
+                  <ThumbUp color="primary" sx={{ fontSize: 16 }} />
+                  <Typography variant="body2" color="textSecondary" sx={{ ml: 0.5 }}>
+                    24
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="textSecondary">
+                  {getCommentsForPost(post.id).length} comments
                 </Typography>
               </Box>
             </Box>
             
             {/* Post Actions */}
-            <Box px={2}>
-              <Divider />
-              <Box display="flex" justifyContent="space-between" py={1}>
-                <IconButton aria-label="like" color="error">
-                  <Favorite />
-                  <Typography variant="body2" sx={{ ml: 1 }}>24</Typography>
-                </IconButton>
-                <IconButton 
-                  aria-label="comment"
-                  onClick={() => handleCommentClick(post.id)}
-                  color="primary"
-                >
-                  <Comment />
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    {getCommentsForPost(post.id).length}
+            <Divider />
+            <Box display="flex" justifyContent="space-between" px={2}>
+              <Button 
+                fullWidth 
+                startIcon={
+                  likedPosts.includes(post.id) ? (
+                    <ThumbUp color="primary" />
+                  ) : (
+                    <ThumbUpAltOutlined />
+                  )
+                }
+                sx={{ 
+                  borderRadius: 0, 
+                  py: 1,
+                  color: likedPosts.includes(post.id) ? 'primary.main' : 'inherit'
+                }}
+                onClick={() => handleLikePost(post.id)}
+              >
+                Like
+              </Button>
+              <Button 
+                fullWidth 
+                startIcon={<ChatBubbleOutline />} 
+                sx={{ borderRadius: 0, py: 1 }}
+                onClick={() => handleCommentClick(post.id)}
+              >
+                Comment
+              </Button>
+              <Button 
+                fullWidth 
+                startIcon={<Share />} 
+                sx={{ borderRadius: 0, py: 1 }}
+              >
+                Share
+              </Button>
+            </Box>
+            <Divider />
+
+            {/* Comments Section */}
+            {getCommentsForPost(post.id).length > 0 && (
+              <Box p={2}>
+                {getCommentsForPost(post.id).slice(0, 2).map(comment => (
+                  <Box key={comment.id} display="flex" mb={1}>
+                    <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
+                    <Box 
+                      sx={{ 
+                        backgroundColor: 'background.default',
+                        borderRadius: 2,
+                        p: 1.5,
+                        flexGrow: 1
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        {comment.userName || 'User'}
+                      </Typography>
+                      <Typography variant="body2">
+                        {comment.comment}
+                      </Typography>
+                    </Box>
+                    <IconButton 
+                      size="small" 
+                      onClick={(e) => handleCommentMenuOpen(e, comment.id)}
+                    >
+                      <MoreVert fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+                {getCommentsForPost(post.id).length > 2 && (
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary" 
+                    sx={{ 
+                      ml: 6, 
+                      cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' }
+                    }}
+                    onClick={() => handleCommentClick(post.id)}
+                  >
+                    View more comments
                   </Typography>
-                </IconButton>
-                <IconButton aria-label="share" color="primary">
-                  <Share />
+                )}
+              </Box>
+            )}
+
+            {/* Add Comment */}
+            <Box display="flex" p={2} pt={0}>
+              <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
+              <Box flexGrow={1} position="relative">
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  InputProps={{
+                    sx: {
+                      borderRadius: 6,
+                      backgroundColor: 'background.default',
+                      pr: 6
+                    }
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  sx={{ 
+                    position: 'absolute', 
+                    right: 8, 
+                    top: '50%', 
+                    transform: 'translateY(-50%)' 
+                  }}
+                  onClick={() => handleAddComment(post.id)}
+                  disabled={!newComment.trim()}
+                >
+                  <Send color={newComment.trim() ? 'primary' : 'disabled'} />
                 </IconButton>
               </Box>
             </Box>
@@ -283,71 +451,105 @@ const PostList = () => {
               onClose={handleCloseComments}
               fullWidth
               maxWidth="sm"
-              PaperProps={{ sx: { borderRadius: 3 } }}
+              PaperProps={{ sx: { borderRadius: 2 } }}
             >
-              <DialogTitle sx={{ 
-                bgcolor: 'primary.main', 
-                color: 'white',
-                fontWeight: 'bold'
-              }}>
-                Comments ({getCommentsForPost(post.id).length})
+              <DialogTitle sx={{ fontWeight: 'bold' }}>
+                Comments
               </DialogTitle>
-              <DialogContent sx={{ pt: 3 }}>
+              <DialogContent sx={{ p: 0 }}>
                 <List>
                   {getCommentsForPost(post.id).map(comment => (
-                    <ListItem key={comment.id}>
+                    <ListItem key={comment.id} sx={{ alignItems: 'flex-start' }}>
                       <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'secondary.main' }}>U</Avatar>
+                        <Avatar>U</Avatar>
                       </ListItemAvatar>
                       <ListItemText
-                        primary={comment.comment}
-                        secondary={`${comment.userName || 'User'} • ${new Date().toLocaleString()}`}
+                        primary={
+                          <>
+                            <Typography variant="subtitle2" fontWeight="bold">
+                              {comment.userName || 'User'}
+                            </Typography>
+                            <Typography variant="body2">
+                              {comment.comment}
+                            </Typography>
+                          </>
+                        }
+                        secondary={
+                          <Typography variant="caption" color="textSecondary">
+                            {new Date().toLocaleString()}
+                          </Typography>
+                        }
+                        sx={{ my: 0 }}
                       />
                       <ListItemSecondaryAction>
                         <IconButton 
-                          edge="end" 
-                          aria-label="delete"
-                          onClick={() => handleDeleteComment(comment.id)}
-                          color="error"
+                          size="small"
+                          onClick={(e) => handleCommentMenuOpen(e, comment.id)}
                         >
-                          <Delete />
+                          <MoreVert fontSize="small" />
                         </IconButton>
                       </ListItemSecondaryAction>
                     </ListItem>
                   ))}
                 </List>
-                <Box display="flex" alignItems="center" mt={2} mb={1}>
-                <TextField
-  fullWidth
-  variant="outlined"
-  size="small"
-  placeholder="Add a comment..."
-  value={newComment}
-  onChange={(e) => setNewComment(e.target.value)}
-  disabled={commentLoading}
-  sx={{ mr: 1 }}
-/>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleAddComment(post.id)}
-                    disabled={!newComment.trim() || commentLoading}
-                    startIcon={commentLoading ? <CircularProgress size={20} /> : <Send />}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Post
-                  </Button>
-                </Box>
               </DialogContent>
-              <DialogActions>
-                <Button 
-                  onClick={handleCloseComments}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Close
-                </Button>
-              </DialogActions>
+              <Box p={2}>
+                <Box display="flex">
+                  <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
+                  <Box flexGrow={1} position="relative">
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      placeholder="Write a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      InputProps={{
+                        sx: {
+                          borderRadius: 6,
+                          backgroundColor: 'background.default',
+                          pr: 6
+                        }
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      sx={{ 
+                        position: 'absolute', 
+                        right: 8, 
+                        top: '50%', 
+                        transform: 'translateY(-50%)' 
+                      }}
+                      onClick={() => handleAddComment(post.id)}
+                      disabled={!newComment.trim() || commentLoading}
+                    >
+                      {commentLoading ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <Send color={newComment.trim() ? 'primary' : 'disabled'} />
+                      )}
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Box>
             </Dialog>
+
+            {/* Comment Options Menu */}
+            <Menu
+              anchorEl={commentAnchorEl}
+              open={Boolean(commentAnchorEl)}
+              onClose={handleCommentMenuClose}
+            >
+              <MenuItem onClick={() => {
+                handleDeleteComment(activeComment);
+                handleCommentMenuClose();
+              }}>
+                <Delete sx={{ mr: 1 }} /> Delete
+              </MenuItem>
+              <MenuItem onClick={handleCommentMenuClose}>
+                <Flag sx={{ mr: 1 }} /> Report
+              </MenuItem>
+            </Menu>
           </Paper>
         ))
       )}
