@@ -40,3 +40,4 @@ out/
 
 # Optional: VSCode settings if used
 .vscode/
+backend/demo/src/main/resources/application.properties
