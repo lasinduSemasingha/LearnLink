@@ -1,6 +1,5 @@
-package com.learnlink.demo.notification.entity;
+package com.learnlink.demo.post.entity;
 
-//check identities
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,13 +8,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
-
+public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String title;
     private String description;
-    private String sender;
-    private Boolean status;
 }

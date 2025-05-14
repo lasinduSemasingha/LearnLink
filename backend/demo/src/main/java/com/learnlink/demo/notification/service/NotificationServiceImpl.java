@@ -21,6 +21,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .title(notification.getTitle())
                     .description(notification.getDescription())
                     .sender(notification.getSender())
+                    .status(notification.getStatus())
                     .build();
         }
 
@@ -30,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .title(dto.getTitle())
                     .description(dto.getDescription())
                     .sender(dto.getSender())
+                    .status(dto.getStatus())
                     .build();
         }
         //createNotification
@@ -54,6 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setTitle(dto.getTitle());
             notification.setDescription(dto.getDescription());
             notification.setSender(dto.getSender());
+            notification.setStatus(dto.getStatus());
             return mapToDTO(repository.save(notification));
         }
         //deleteNotification
