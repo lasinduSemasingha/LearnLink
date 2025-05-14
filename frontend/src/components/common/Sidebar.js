@@ -38,7 +38,7 @@ const Sidebar = ({ open, onClose, isMobile, drawerWidth }) => {
     { text: 'Home', icon: <Home />, path: '/' },
     { text: 'My Courses', icon: <School />, path: '/my-courses' },
     { text: 'Browse Courses', icon: <VideoLibrary />, path: '/courses' },
-    { text: 'Learning Paths', icon: <Assignment />, path: '/paths' },
+    { text: 'Posts', icon: <Assignment />, path: '/posts' },
     { text: 'Practice Tests', icon: <Quiz />, path: '/tests' },
     { text: 'Community', icon: <Groups />, path: '/community' },
     { text: 'Resources', icon: <Article />, path: '/resources' },
