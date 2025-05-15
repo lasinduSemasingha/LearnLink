@@ -13,6 +13,7 @@ import PostList from './components/posts/PostList';
 import NotificationDetail from './components/notifications/NotificationDetail';
 import UpdatePostPage from './components/posts/UpdatePostPage';
 import CoursesWithProgress from './components/courses/CoursesWithProgress';
+import LoginPage from './components/auth/LoginPage';
 
 const App = () => {
   const theme = useTheme();
@@ -77,7 +78,7 @@ const App = () => {
               flexDirection: 'column'
             }}>
               <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<LoginPage />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/posts/:id" element={<PostDetails />} />
@@ -86,6 +87,9 @@ const App = () => {
                 <Route path="/notifications/:id" element={<NotificationDetail />} />
                 <Route path="/posts/update/:id" element={<UpdatePostPage />} />
                 <Route path="/courses/progress" element={<CoursesWithProgress />} />
+
+                {/* Authentication Urls */}
+                <Route path="/home" element={<Home />} />
               </Routes>
               <Box sx={{ mt: 'auto', pt: 4 }}>
                 <Footer />
