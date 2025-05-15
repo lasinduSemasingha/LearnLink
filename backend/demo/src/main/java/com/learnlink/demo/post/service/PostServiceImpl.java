@@ -20,19 +20,19 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostDTO mapToDTO(Post post) {
-        return PostDTO.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .description(post.getDescription())
-                .build();
+        PostDTO dto = new PostDTO();
+        dto.setId(post.getId());
+        dto.setTitle(post.getTitle());
+        dto.setDescription(post.getDescription());
+        return dto;
     }
 
     private Post mapToEntity(PostDTO dto) {
-        return Post.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .build();
+        Post post = new Post();
+        post.setId(dto.getId());
+        post.setTitle(dto.getTitle());
+        post.setDescription(dto.getDescription());
+        return post;
     }
 
     @Override

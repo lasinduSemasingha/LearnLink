@@ -17,6 +17,7 @@ import {
   Bookmark,
   Forum
 } from '@mui/icons-material';
+import { useEffect } from 'react';
 
 const Home = () => {
   const theme = useTheme();
@@ -58,6 +59,32 @@ const Home = () => {
       category: 'Mentorship'
     },
   ]);
+  const [user, setUser] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("userInfo");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      return;
+    }
+  
+    fetch("http://localhost:8085/api/userinfo", {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Not authenticated");
+        return res.json();
+      })
+      .then((data) => {
+        localStorage.setItem("userInfo", JSON.stringify(data));
+        setUser(data);
+        window.location.href = "/home";
+      })
+      .catch(() => {
+        localStorage.removeItem("userInfo");
+        setUser(null);
+      })
+  }, []);
 
   const [activeCategory, setActiveCategory] = useState('All');
 

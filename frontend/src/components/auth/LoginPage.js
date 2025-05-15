@@ -1,110 +1,138 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  TextField,
-  Typography,
-  Alert,
+  Card,
+  CardContent,
   CircularProgress,
+  Container,
+  Grid,
+  Typography,
+  Avatar,
+  Divider,
+  Paper,
+  Chip
 } from "@mui/material";
+import { Google as GoogleIcon, Logout as LogoutIcon } from "@mui/icons-material";
 
-export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const navigate = useNavigate();
+function LoginPage() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const response = await fetch("http://localhost:8085/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || "Login failed");
-      }
-
-      const data = await response.json();
-      // Store token securely - here localStorage for demo
-      localStorage.setItem("token", data.token);
-      setSuccess("Login successful!");
-      setUsername("");
-      setPassword("");
-      navigate("/home"); // Redirect to home page or dashboard
-    } catch (err) {
-      setError(err.message);
-    }
-
-    setLoading(false);
+  const login = () => {
+    window.location.href = "http://localhost:8085/oauth2/authorization/google";
   };
 
+  const logout = () => {
+    localStorage.removeItem("userInfo");
+    window.location.href = "http://localhost:8085/logout";
+  };
+
+  useEffect(() => {
+    fetch("http://localhost:8085/api/userinfo", {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Not authenticated");
+        return res.json();
+      })
+      .then((data) => setUser(data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <Container maxWidth="sm" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <CircularProgress size={60} />
+      </Container>
+    );
+  }
+
   return (
-    <Box
-      maxWidth={400}
-      mx="auto"
-      mt={8}
-      p={4}
-      boxShadow={3}
-      borderRadius={2}
-      bgcolor="background.paper"
-    >
-      <Typography variant="h5" mb={3} textAlign="center">
-        Login
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
-
-      <TextField
-        label="Username"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        autoComplete="username"
-      />
-      <TextField
-        label="Password"
-        variant="outlined"
-        type="password"
-        fullWidth
-        margin="normal"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoComplete="current-password"
-      />
-
-      <Button
-        variant="contained"
-        color="primary"
-        fullWidth
-        onClick={handleLogin}
-        disabled={loading || !username || !password}
-        sx={{ mt: 2 }}
-      >
-        {loading ? <CircularProgress size={24} /> : "Login"}
-      </Button>
-    </Box>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Card elevation={3}>
+        <CardContent>
+          {user ? (
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={4} sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Avatar
+                  src={user.picture}
+                  alt={user.name}
+                  sx={{ width: 120, height: 120, mb: 2 }}
+                />
+                <Typography variant="h5" component="h2" gutterBottom>
+                  {user.name}
+                </Typography>
+                <Typography color="text.secondary" gutterBottom>
+                  {user.email}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<LogoutIcon />}
+                  onClick={logout}
+                  sx={{ mt: 3 }}
+                >
+                  Sign Out
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                  User Information
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+                  <Grid container spacing={2}>
+                    {Object.entries(user).map(([key, value]) => (
+                      <Grid item xs={12} sm={6} key={key}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          {key}
+                        </Typography>
+                        <Typography variant="body1">
+                          {typeof value === "string" ? value : JSON.stringify(value)}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+                <Chip
+                  label="Authenticated"
+                  color="success"
+                  variant="outlined"
+                  sx={{ px: 1 }}
+                />
+              </Grid>
+            </Grid>
+          ) : (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+                Welcome to Our Platform
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
+                Please sign in with your Google account to access all features
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<GoogleIcon />}
+                onClick={login}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  backgroundColor: "#4285F4",
+                  "&:hover": { backgroundColor: "#357ABD" }
+                }}
+              >
+                Sign in with Google
+              </Button>
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Container>
   );
 }
+
+export default LoginPage;

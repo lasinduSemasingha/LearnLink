@@ -20,6 +20,7 @@ import { useState } from 'react';
 const Header = ({ onDrawerToggle, sidebarOpen, isMobile }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -98,9 +99,10 @@ const Header = ({ onDrawerToggle, sidebarOpen, isMobile }) => {
             color="inherit"
             sx={{ p: 0, ml: 1 }}
           >
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-              <AccountCircleIcon fontSize="small" />
-            </Avatar>
+            <Avatar 
+  src={userInfo && userInfo.picture ? userInfo.picture : '/default-avatar.png'} 
+  sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}
+/>
           </IconButton>
           
           <Menu

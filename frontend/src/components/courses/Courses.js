@@ -31,44 +31,37 @@ const Courses = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-  const fetchCourses = async () => {
-    try {
-      const token = localStorage.getItem('token');  // or wherever you store your JWT
-
-      const response = await fetch('http://localhost:8085/api/courses', {
-        headers: {
-          'Authorization': `Bearer ${token}`,   // Add the JWT token here
-          'Content-Type': 'application/json'
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch('http://localhost:8085/api/courses', {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
         }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch courses');
+        const data = await response.json();
+        const enhancedCourses = data.map(course => ({
+          ...course,
+          rating: (Math.random() * 1 + 4).toFixed(1),
+          students: Math.floor(Math.random() * 1000) + 50,
+          duration: `${Math.floor(Math.random() * 5) + 1} hours`,
+          lectures: Math.floor(Math.random() * 30) + 5,
+          price: Math.floor(Math.random() * 50) + 20,
+          discountPrice: Math.floor(Math.random() * 20) + 10,
+          category: ['Programming', 'Development', 'IT & Software'][Math.floor(Math.random() * 3)],
+          image: TECH_IMAGE_URL // Using the same image for all courses
+        }));
+        setCourses(enhancedCourses);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      const enhancedCourses = data.map(course => ({
-        ...course,
-        rating: (Math.random() * 1 + 4).toFixed(1),
-        students: Math.floor(Math.random() * 1000) + 50,
-        duration: `${Math.floor(Math.random() * 5) + 1} hours`,
-        lectures: Math.floor(Math.random() * 30) + 5,
-        price: Math.floor(Math.random() * 50) + 20,
-        discountPrice: Math.floor(Math.random() * 20) + 10,
-        category: ['Programming', 'Development', 'IT & Software'][Math.floor(Math.random() * 3)],
-        image: TECH_IMAGE_URL // Using the same image for all courses
-      }));
-      setCourses(enhancedCourses);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchCourses();
-}, []);
-
+    fetchCourses();
+  }, []);
 
   if (loading) {
     return (

@@ -31,11 +31,14 @@ import {
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ open, onClose, isMobile, drawerWidth }) => {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
   const theme = useTheme();
   const location = useLocation();
 
+  console.log(userInfo);
+
   const primaryItems = [
-    { text: 'Home', icon: <Home />, path: '/' },
+    { text: 'Home', icon: <Home />, path: '/home' },
     { text: 'My Courses', icon: <School />, path: '/my-courses' },
     { text: 'Browse Courses', icon: <VideoLibrary />, path: '/courses' },
     { text: 'Posts', icon: <Assignment />, path: '/posts' },
@@ -56,9 +59,9 @@ const Sidebar = ({ open, onClose, isMobile, drawerWidth }) => {
   ];
 
   const user = {
-    name: 'Alex Johnson',
-    role: 'Premium Member',
-    avatar: '/avatars/user1.jpg' // Replace with your avatar path
+  name: userInfo ? userInfo.name : 'Guest User',
+  role: 'Premium Member',
+  avatar: userInfo && userInfo.picture ? userInfo.picture : '/default-avatar.png' // fallback avatar
   };
 
   return (
