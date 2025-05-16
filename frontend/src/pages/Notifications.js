@@ -58,14 +58,40 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
-  const handleMarkAsRead = (id) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? {...notification, status: true} : notification
-    ));
+  const handleMarkAsRead = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8085/api/notification/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: true })
+      });
+
+      if (!response.ok) throw new Error('Failed to mark notification as read');
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, status: true } : n))
+      );
+    } catch (err) {
+      console.error(err);
+      alert('Error updating notification status.');
+    }
   };
 
-  const handleDismiss = (id) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
+  const handleDismiss = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:8085/api/notification/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) throw new Error('Failed to delete notification');
+
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting notification.');
+    }
   };
 
   if (loading) {
@@ -121,8 +147,8 @@ const Notifications = () => {
           {notifications.map((notification, index) => (
             <Box key={notification.id}>
               <ListItem 
-              button 
-              onClick={() => navigate(`/notifications/${notification.id}`)}
+                button 
+                onClick={() => navigate(`/notifications/${notification.id}`)}
                 sx={{
                   backgroundColor: notification.status ? 'inherit' : 'rgba(25, 118, 210, 0.08)',
                   transition: 'background-color 0.3s ease',
@@ -132,10 +158,11 @@ const Notifications = () => {
                 }}
               >
                 <Avatar 
-                  src={notification.senderAvatar} 
                   alt={notification.sender}
                   sx={{ mr: 2, bgcolor: 'secondary.main' }}
-                />
+                >
+                  {notification.sender?.charAt(0).toUpperCase()}
+                </Avatar>
                 <ListItemText
                   primary={
                     <Typography 
@@ -177,14 +204,20 @@ const Notifications = () => {
                   <Box>
                     <IconButton 
                       size="small" 
-                      onClick={() => handleMarkAsRead(notification.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
                       color="primary"
                     >
                       <MarkReadIcon fontSize="small" />
                     </IconButton>
                     <IconButton 
                       size="small" 
-                      onClick={() => handleDismiss(notification.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDismiss(notification.id);
+                      }}
                       color="error"
                     >
                       <CloseIcon fontSize="small" />

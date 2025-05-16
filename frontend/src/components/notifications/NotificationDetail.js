@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -19,7 +19,6 @@ import {
   Person as PersonIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -70,12 +69,26 @@ const NotificationDetail = () => {
 
   const handleMarkAsRead = async () => {
     if (!notification || notification.status) return;
-    
+
     setIsMarkingRead(true);
     try {
-      // Simulate API call to mark as read
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setNotification({ ...notification, status: true });
+      const res = await fetch(`http://localhost:8085/api/notification/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...notification, status: true })
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to update notification status');
+      }
+
+      const updatedNotification = await res.json();
+      setNotification(updatedNotification);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to mark notification as read.');
     } finally {
       setIsMarkingRead(false);
     }
