@@ -1,6 +1,8 @@
 package com.learnlink.demo.auth.config;
 
+import com.learnlink.demo.user.service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,6 +17,9 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 public class SecurityConfig {
+
+    @Autowired
+    private CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -50,6 +55,9 @@ public class SecurityConfig {
                         })
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
                         .defaultSuccessUrl("http://localhost:3000/home", true)
                         .failureUrl("http://localhost:3000/")
                 )
