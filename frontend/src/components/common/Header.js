@@ -16,6 +16,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Header = ({ onDrawerToggle, sidebarOpen, isMobile }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -133,7 +134,7 @@ const Header = ({ onDrawerToggle, sidebarOpen, isMobile }) => {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+            <MenuItem onClick={handleMenuClose} component={Link} to="/profile" >Profile</MenuItem>
             <MenuItem onClick={handleMenuClose}>My Account</MenuItem>
             <Divider />
             <MenuItem onClick={handleMenuClose}>Logout</MenuItem>

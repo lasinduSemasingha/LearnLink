@@ -14,6 +14,7 @@ import NotificationDetail from './components/notifications/NotificationDetail';
 import UpdatePostPage from './components/posts/UpdatePostPage';
 import CoursesWithProgress from './components/courses/CoursesWithProgress';
 import LoginPage from './components/auth/LoginPage';
+import ProfilePage from './components/common/ProfilePage';
 
 const App = () => {
   const theme = useTheme();
@@ -87,6 +88,9 @@ const App = () => {
                 <Route path="/notifications/:id" element={<NotificationDetail />} />
                 <Route path="/posts/update/:id" element={<UpdatePostPage />} />
                 <Route path="/courses/progress" element={<CoursesWithProgress />} />
+
+                {/* Add more routes as needed */}
+                <Route path="/profile" element={<ProfilePage />} />
 
                 {/* Authentication Urls */}
                 <Route path="/home" element={<Home />} />
