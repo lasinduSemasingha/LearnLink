@@ -20,6 +20,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(true);
 
   const login = () => {
+    sessionStorage.setItem("isLoggedIn", "true");
     window.location.href = "http://localhost:8085/oauth2/authorization/google";
   };
 
