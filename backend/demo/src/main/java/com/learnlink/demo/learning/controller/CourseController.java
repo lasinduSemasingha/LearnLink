@@ -39,7 +39,6 @@ public class CourseController {
     }
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<List<CourseDTO>> getAll() {
         return ResponseEntity.ok(courseService.getAllCourses());
     }
