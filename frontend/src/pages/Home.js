@@ -18,6 +18,7 @@ import {
   Forum
 } from '@mui/icons-material';
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const theme = useTheme();
@@ -211,6 +212,8 @@ const Home = () => {
                 Explore Learning Paths
               </Button>
               <Button 
+                component={Link}
+                to="/mentors"
                 variant="outlined" 
                 size="large"
                 sx={{ 

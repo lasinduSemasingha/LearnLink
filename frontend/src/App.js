@@ -15,6 +15,7 @@ import UpdatePostPage from './components/posts/UpdatePostPage';
 import CoursesWithProgress from './components/courses/CoursesWithProgress';
 import LoginPage from './components/auth/LoginPage';
 import ProfilePage from './components/common/ProfilePage';
+import MentorProfiles from './components/other/MentorProfiles';
 
 const App = () => {
   const theme = useTheme();
@@ -91,6 +92,7 @@ const App = () => {
 
                 {/* Add more routes as needed */}
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/mentors" element={<MentorProfiles />} />
 
                 {/* Authentication Urls */}
                 <Route path="/home" element={<Home />} />
