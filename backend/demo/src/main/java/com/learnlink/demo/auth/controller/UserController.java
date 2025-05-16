@@ -10,6 +10,7 @@ import java.util.Map;
 @RestController
 public class UserController {
 
+    //user details getting endpoint
     @GetMapping("/api/userinfo")
     public Map<String, Object> userInfo(@AuthenticationPrincipal OAuth2User principal) {
         return principal.getAttributes();
