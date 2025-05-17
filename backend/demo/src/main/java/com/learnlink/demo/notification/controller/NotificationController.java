@@ -37,7 +37,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")  // Require login to create posts
+    // @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<List<NotificationDTO>> getAll() {
         return ResponseEntity.ok(notificationService.getAllNotification());
     }
@@ -53,7 +53,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")  // Require login to create posts
+    //@PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();

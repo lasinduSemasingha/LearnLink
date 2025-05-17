@@ -64,7 +64,7 @@ const Notifications = () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
-        },
+        },credentials: 'include',
         body: JSON.stringify({ status: true })
       });
 

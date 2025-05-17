@@ -53,7 +53,10 @@ const NotificationDetail = () => {
   useEffect(() => {
     const fetchNotification = async () => {
       try {
-        const res = await fetch(`http://localhost:8085/api/notification/${id}`);
+        const res = await fetch(`http://localhost:8085/api/notification/${id}`, {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
         if (!res.ok) throw new Error('Failed to fetch notification details');
         const data = await res.json();
         setNotification(data);
@@ -74,6 +77,7 @@ const NotificationDetail = () => {
     try {
       const res = await fetch(`http://localhost:8085/api/notification/${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
         },
