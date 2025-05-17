@@ -36,7 +36,8 @@ import {
   ThumbUpAltOutlined,
   EmojiEmotions,
   InsertPhoto,
-  Flag
+  Flag,
+  Edit
 } from '@mui/icons-material';
 
 const POST_IMAGE_URL = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80";
@@ -55,6 +56,10 @@ const PostList = () => {
   const [likedPosts, setLikedPosts] = useState([]);
   const [commentAnchorEl, setCommentAnchorEl] = useState(null);
   const [activeComment, setActiveComment] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [updatedDescription, setUpdatedDescription] = useState('');
+  const [postContent, setPostContent] = useState('');
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,18 +67,17 @@ const PostList = () => {
         // Fetch posts
         const postsResponse = await fetch('http://localhost:8085/api/post', {
           method: 'GET',
-          credentials: 'include', // send the login session cookie
+          credentials: 'include',
         });
 
         if (!postsResponse.ok) throw new Error('Failed to fetch posts');
         const postsData = await postsResponse.json();
         setPosts(postsData);
 
-
         // Fetch all comments
         const commentsResponse = await fetch('http://localhost:8085/api/comments', {
           method: 'GET',
-          credentials: 'include', // send the login session cookie
+          credentials: 'include',
         });
         if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
         const commentsData = await commentsResponse.json();
@@ -184,6 +188,112 @@ const PostList = () => {
     setSnackbarOpen(false);
   };
 
+  const handleDeletePost = async (postId) => {
+    try {
+      const response = await fetch(`http://localhost:8085/api/post/${postId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete post');
+      }
+
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      setSnackbarMessage('Post deleted successfully!');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setError(err.message);
+      setSnackbarMessage(err.message || 'Failed to delete post');
+      setSnackbarOpen(true);
+    } finally {
+      handleMenuClose();
+    }
+  };
+
+  const handleStartEditPost = (post) => {
+    setEditingPost(post);
+    setUpdatedDescription(post.description);
+  };
+
+  const handleUpdatePost = async () => {
+    if (!updatedDescription.trim()) return;
+
+    try {
+      const response = await fetch(`http://localhost:8085/api/post/${editingPost.id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: updatedDescription
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update post');
+      }
+
+      const updatedPost = await response.json();
+      setPosts(prev => prev.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      ));
+      setSnackbarMessage('Post updated successfully!');
+      setSnackbarOpen(true);
+      setEditingPost(null);
+    } catch (err) {
+      setError(err.message);
+      setSnackbarMessage(err.message || 'Failed to update post');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setUpdatedDescription('');
+  };
+
+  const handleCreatePost = async () => {
+    if (!postContent.trim()) return;
+
+    try {
+      setIsCreatingPost(true);
+      const response = await fetch('http://localhost:8085/api/post', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: postContent
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create post');
+      }
+
+      const newPost = await response.json();
+      setPosts(prev => [newPost, ...prev]);
+      setPostContent('');
+      setSnackbarMessage('Post created successfully!');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setError(err.message);
+      setSnackbarMessage(err.message || 'Failed to create post');
+      setSnackbarOpen(true);
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -217,11 +327,12 @@ const PostList = () => {
             variant="outlined"
             size="small"
             placeholder="What's on your mind?"
+            value={postContent}
+            onChange={(e) => setPostContent(e.target.value)}
             InputProps={{
               sx: {
                 borderRadius: 6,
                 backgroundColor: 'background.default',
-                cursor: 'pointer',
                 '&:hover': {
                   backgroundColor: 'action.hover'
                 }
@@ -231,11 +342,28 @@ const PostList = () => {
         </Box>
         <Divider sx={{ my: 1 }} />
         <Box display="flex" justifyContent="space-between">
-          <Button startIcon={<InsertPhoto color="primary" />} sx={{ borderRadius: 6 }}>
+          <Button 
+            startIcon={<InsertPhoto color="primary" />} 
+            sx={{ borderRadius: 6 }}
+            disabled={isCreatingPost}
+          >
             Photo
           </Button>
-          <Button startIcon={<EmojiEmotions color="secondary" />} sx={{ borderRadius: 6 }}>
+          <Button 
+            startIcon={<EmojiEmotions color="secondary" />} 
+            sx={{ borderRadius: 6 }}
+            disabled={isCreatingPost}
+          >
             Feeling
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            sx={{ borderRadius: 6 }}
+            onClick={handleCreatePost}
+            disabled={!postContent.trim() || isCreatingPost}
+          >
+            {isCreatingPost ? <CircularProgress size={24} /> : 'Post'}
           </Button>
         </Box>
       </Paper>
@@ -294,6 +422,15 @@ const PostList = () => {
                 <MenuItem onClick={handleMenuClose}>
                   <Bookmark sx={{ mr: 1 }} /> Save post
                 </MenuItem>
+                <MenuItem onClick={() => {
+                  handleStartEditPost(post);
+                  handleMenuClose();
+                }}>
+                  <Edit sx={{ mr: 1 }} /> Update post
+                </MenuItem>
+                <MenuItem onClick={() => handleDeletePost(post.id)}>
+                  <Delete sx={{ mr: 1 }} /> Delete post
+                </MenuItem>
                 <MenuItem onClick={handleMenuClose}>
                   <Flag sx={{ mr: 1 }} /> Report post
                 </MenuItem>
@@ -302,9 +439,37 @@ const PostList = () => {
             
             {/* Post Content */}
             <Box p={2} pt={0}>
-              <Typography variant="body1" paragraph>
-                {post.description}
-              </Typography>
+              {editingPost?.id === post.id ? (
+                <>
+                  <TextField
+                    fullWidth
+                    multiline
+                    variant="outlined"
+                    value={updatedDescription}
+                    onChange={(e) => setUpdatedDescription(e.target.value)}
+                    sx={{ mb: 2 }}
+                  />
+                  <Box display="flex" justifyContent="flex-end" gap={1}>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="contained" 
+                      onClick={handleUpdatePost}
+                      disabled={!updatedDescription.trim()}
+                    >
+                      Save
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body1" paragraph>
+                  {post.description}
+                </Typography>
+              )}
               
               {/* Post Image */}
               <Box 
