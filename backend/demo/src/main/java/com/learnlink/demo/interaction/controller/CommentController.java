@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/comments")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class CommentController {
     
    @Autowired
@@ -29,6 +30,7 @@ public class CommentController {
 
     // Handle POST requests to create a new comment
     @PostMapping
+    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<CommentDTO> create(@RequestBody CommentDTO dto) {
         // Call service to create a comment and return it with HTTP 200 OK
         return ResponseEntity.ok(commentService.createComment(dto));
@@ -36,6 +38,7 @@ public class CommentController {
 
     // Handle GET requests to retrieve a single comment by ID
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<CommentDTO> get(@PathVariable Long id) {
         // Retrieve comment from service
         CommentDTO comment = commentService.getComment(id);
@@ -49,6 +52,7 @@ public class CommentController {
 
     // Handle GET requests to retrieve all comments
     @GetMapping
+    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<List<CommentDTO>> getAll() {
         // Return a list of all comments
         return ResponseEntity.ok(commentService.getAllComment());
@@ -56,6 +60,7 @@ public class CommentController {
 
     // Handle PUT requests to update an existing comment
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<CommentDTO> update(@PathVariable Long id, @RequestBody CommentDTO dto) {
          // Update the comment using the service
         CommentDTO updated = commentService.updateComment(id, dto);
@@ -67,6 +72,7 @@ public class CommentController {
 
     //handle DELETE requests to remove a comment by ID
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         // Call service to delete the comment
         commentService.deleteComment(id);

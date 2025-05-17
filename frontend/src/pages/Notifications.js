@@ -39,7 +39,10 @@ const Notifications = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('http://localhost:8085/api/notification');
+        const response = await fetch('http://localhost:8085/api/notification', {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch notifications');
         }

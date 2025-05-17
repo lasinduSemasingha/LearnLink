@@ -33,7 +33,10 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch('http://localhost:8085/api/courses');
+        const response = await fetch('http://localhost:8085/api/courses', {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch courses');
         }

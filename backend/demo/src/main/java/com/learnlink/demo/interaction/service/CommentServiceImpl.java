@@ -1,6 +1,5 @@
 package com.learnlink.demo.interaction.service;
 
-
 import com.learnlink.demo.interaction.dto.CommentDTO;
 import com.learnlink.demo.interaction.entity.Comment;
 import com.learnlink.demo.interaction.repository.CommentRepository;
@@ -17,19 +16,19 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository repository;
 
     private CommentDTO mapToDTO(Comment comment) {
-        return CommentDTO.builder()
-                .id(comment.getId())
-                .postId(comment.getPostId())
-                .comment(comment.getComment())
-                .build();
+        CommentDTO dto = new CommentDTO();
+        dto.setId(comment.getId());
+        dto.setPostId(comment.getPostId());
+        dto.setComment(comment.getComment());
+        return dto;
     }
 
     private Comment mapToEntity(CommentDTO dto) {
-        return Comment.builder()
-                .id(dto.getId())
-                .postId(dto.getPostId())
-                .comment(dto.getComment())
-                .build();
+        Comment comment = new Comment();
+        comment.setId(dto.getId());
+        comment.setPostId(dto.getPostId());
+        comment.setComment(dto.getComment());
+        return comment;
     }
 
     @Override

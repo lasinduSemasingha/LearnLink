@@ -60,13 +60,21 @@ const PostList = () => {
     const fetchData = async () => {
       try {
         // Fetch posts
-        const postsResponse = await fetch('http://localhost:8085/api/post');
+        const postsResponse = await fetch('http://localhost:8085/api/post', {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
+
         if (!postsResponse.ok) throw new Error('Failed to fetch posts');
         const postsData = await postsResponse.json();
         setPosts(postsData);
 
+
         // Fetch all comments
-        const commentsResponse = await fetch('http://localhost:8085/api/comments');
+        const commentsResponse = await fetch('http://localhost:8085/api/comments', {
+          method: 'GET',
+          credentials: 'include', // send the login session cookie
+        });
         if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
         const commentsData = await commentsResponse.json();
         setAllComments(commentsData);
@@ -118,7 +126,7 @@ const PostList = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
+        },credentials: 'include',
         body: JSON.stringify({
           postId: postId.toString(),
           comment: newComment
@@ -144,7 +152,8 @@ const PostList = () => {
   const handleDeleteComment = async (commentId) => {
     try {
       const response = await fetch(`http://localhost:8085/api/comments/${commentId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to delete comment');
