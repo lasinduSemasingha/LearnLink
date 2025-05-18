@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
+import {
+  Box,
+  Container,
+  Typography,
   CircularProgress,
   Paper,
   Avatar,
@@ -23,20 +23,23 @@ import {
   Alert,
   Chip,
   Menu,
-  MenuItem
+  MenuItem,
+  Tooltip,
+  Collapse
 } from '@mui/material';
-import { 
-  ThumbUp, 
-  ChatBubbleOutline, 
-  Share, 
-  MoreVert, 
-  Send, 
-  Delete, 
-  Bookmark, 
+import {
+  ThumbUp,
+  ChatBubbleOutline,
+  Share,
+  MoreVert,
+  Send,
+  Delete,
+  Bookmark,
   ThumbUpAltOutlined,
   EmojiEmotions,
   InsertPhoto,
-  Flag
+  Flag,
+  Edit
 } from '@mui/icons-material';
 
 const POST_IMAGE_URL = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80";
@@ -45,9 +48,10 @@ const PostList = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [allComments, setAllComments] = useState([]);
-  const [openComments, setOpenComments] = useState(null);
+  const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState('');
+  const [editingComment, setEditingComment] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -55,6 +59,8 @@ const PostList = () => {
   const [likedPosts, setLikedPosts] = useState([]);
   const [commentAnchorEl, setCommentAnchorEl] = useState(null);
   const [activeComment, setActiveComment] = useState(null);
+  const [expandedComments, setExpandedComments] = useState({});
+  const [postLikes, setPostLikes] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +76,31 @@ const PostList = () => {
         setPosts(postsData);
 
 
+        // Initialize likes for each post
+        const initialLikes = {};
+        postsData.forEach(post => {
+          initialLikes[post.id] = post.likes || 24;
+        });
+        setPostLikes(initialLikes);
+
+        // Initialize comments structure for each post
+        const commentsStructure = {};
+        postsData.forEach(post => {
+          commentsStructure[post.id] = [];
+        });
+        setComments(commentsStructure);
+
+        // Fetch all comments for each post
+        await Promise.all(postsData.map(async (post) => {
+          const commentsResponse = await fetch(`http://localhost:8085/api/comments?postId=${post.id}`);
+          if (!commentsResponse.ok) throw new Error(`Failed to fetch comments for post ${post.id}`);
+          const commentsData = await commentsResponse.json();
+          
+          setComments(prev => ({
+            ...prev,
+            [post.id]: commentsData
+          }));
+        }));
         // Fetch all comments
         const commentsResponse = await fetch('http://localhost:8085/api/comments', {
           method: 'GET',
@@ -108,20 +139,11 @@ const PostList = () => {
     setActiveComment(null);
   };
 
-  const handleCommentClick = (postId) => {
-    setOpenComments(postId);
-  };
-
-  const handleCloseComments = () => {
-    setOpenComments(null);
-  };
-
   const handleAddComment = async (postId) => {
     if (!newComment.trim()) return;
 
     try {
       setCommentLoading(true);
-      
       const response = await fetch('http://localhost:8085/api/comments', {
         method: 'POST',
         headers: {
@@ -129,14 +151,20 @@ const PostList = () => {
         },credentials: 'include',
         body: JSON.stringify({
           postId: postId.toString(),
-          comment: newComment
+          comment: newComment,
+          userName: "Current User"
         })
       });
 
       if (!response.ok) throw new Error('Failed to add comment');
 
       const addedComment = await response.json();
-      setAllComments(prev => [...prev, addedComment]);
+      
+      setComments(prev => ({
+        ...prev,
+        [postId]: [...prev[postId], addedComment]
+      }));
+      
       setNewComment('');
       setSnackbarMessage('Comment added successfully!');
       setSnackbarOpen(true);
@@ -149,7 +177,7 @@ const PostList = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (postId, commentId) => {
     try {
       const response = await fetch(`http://localhost:8085/api/comments/${commentId}`, {
         method: 'DELETE',
@@ -158,7 +186,11 @@ const PostList = () => {
 
       if (!response.ok) throw new Error('Failed to delete comment');
 
-      setAllComments(prev => prev.filter(comment => comment.id !== commentId));
+      setComments(prev => ({
+        ...prev,
+        [postId]: prev[postId].filter(comment => comment.id !== commentId)
+      }));
+      
       setSnackbarMessage('Comment deleted successfully!');
       setSnackbarOpen(true);
     } catch (err) {
@@ -168,16 +200,87 @@ const PostList = () => {
     }
   };
 
-  const handleLikePost = (postId) => {
-    if (likedPosts.includes(postId)) {
-      setLikedPosts(likedPosts.filter(id => id !== postId));
-    } else {
-      setLikedPosts([...likedPosts, postId]);
+  const handleUpdateComment = async (postId) => {
+    if (!editedCommentText.trim() || !editingComment) return;
+
+    try {
+      setCommentLoading(true);
+      
+      const response = await fetch(`http://localhost:8085/api/comments/${editingComment}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment: editedCommentText
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update comment');
+
+      const updatedComment = await response.json();
+      
+      setComments(prev => ({
+        ...prev,
+        [postId]: prev[postId].map(comment => 
+          comment.id === editingComment 
+            ? { ...comment, comment: editedCommentText } 
+            : comment
+        )
+      }));
+      
+      setEditingComment(null);
+      setEditedCommentText('');
+      setSnackbarMessage('Comment updated successfully!');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setError(err.message);
+      setSnackbarMessage('Failed to update comment');
+      setSnackbarOpen(true);
+    } finally {
+      setCommentLoading(false);
     }
   };
 
-  const getCommentsForPost = (postId) => {
-    return allComments.filter(comment => comment.postId === postId.toString());
+  const handleStartEditing = (commentId) => {
+    const comment = Object.values(comments)
+      .flat()
+      .find(c => c.id === commentId);
+      
+    if (comment) {
+      setEditingComment(commentId);
+      setEditedCommentText(comment.comment);
+    }
+    handleCommentMenuClose();
+  };
+
+  const handleCancelEditing = () => {
+    setEditingComment(null);
+    setEditedCommentText('');
+  };
+
+  const handleLikePost = (postId) => {
+    const newLikedPosts = [...likedPosts];
+    const newPostLikes = {...postLikes};
+    
+    if (newLikedPosts.includes(postId)) {
+      const index = newLikedPosts.indexOf(postId);
+      newLikedPosts.splice(index, 1);
+      newPostLikes[postId] -= 1;
+    } else {
+      newLikedPosts.push(postId);
+      newPostLikes[postId] += 1;
+    }
+    
+    setLikedPosts(newLikedPosts);
+    setPostLikes(newPostLikes);
+  };
+
+  const toggleCommentsExpansion = (postId) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
   };
 
   const handleCloseSnackbar = () => {
@@ -202,9 +305,9 @@ const PostList = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 2 }}>
-      {/* Create Post Card (Facebook-style) */}
-      <Paper elevation={0} sx={{ 
-        mb: 3, 
+      {/* Create Post Card */}
+      <Paper elevation={0} sx={{
+        mb: 3,
         borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
@@ -285,7 +388,6 @@ const PostList = () => {
                 <MoreVert />
               </IconButton>
               
-              {/* Post Options Menu */}
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl) && activeComment === post.id}
@@ -325,11 +427,11 @@ const PostList = () => {
                 <Box display="flex" alignItems="center">
                   <ThumbUp color="primary" sx={{ fontSize: 16 }} />
                   <Typography variant="body2" color="textSecondary" sx={{ ml: 0.5 }}>
-                    24
+                    {postLikes[post.id] || 0}
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="textSecondary">
-                  {getCommentsForPost(post.id).length} comments
+                  {comments[post.id]?.length || 0} comments
                 </Typography>
               </Box>
             </Box>
@@ -359,7 +461,7 @@ const PostList = () => {
                 fullWidth 
                 startIcon={<ChatBubbleOutline />} 
                 sx={{ borderRadius: 0, py: 1 }}
-                onClick={() => handleCommentClick(post.id)}
+                onClick={() => toggleCommentsExpansion(post.id)}
               >
                 Comment
               </Button>
@@ -373,175 +475,105 @@ const PostList = () => {
             </Box>
             <Divider />
 
-            {/* Comments Section */}
-            {getCommentsForPost(post.id).length > 0 && (
+            {/* Comments Section - Now appears when clicking Comment button */}
+            <Collapse in={expandedComments[post.id]}>
               <Box p={2}>
-                {getCommentsForPost(post.id).slice(0, 2).map(comment => (
+                {comments[post.id]?.map(comment => (
                   <Box key={comment.id} display="flex" mb={1}>
-                    <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
-                    <Box 
-                      sx={{ 
-                        backgroundColor: 'background.default',
-                        borderRadius: 2,
-                        p: 1.5,
-                        flexGrow: 1
-                      }}
-                    >
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {comment.userName || 'User'}
-                      </Typography>
-                      <Typography variant="body2">
-                        {comment.comment}
-                      </Typography>
-                    </Box>
-                    <IconButton 
-                      size="small" 
-                      onClick={(e) => handleCommentMenuOpen(e, comment.id)}
-                    >
-                      <MoreVert fontSize="small" />
-                    </IconButton>
-                  </Box>
-                ))}
-                {getCommentsForPost(post.id).length > 2 && (
-                  <Typography 
-                    variant="body2" 
-                    color="textSecondary" 
-                    sx={{ 
-                      ml: 6, 
-                      cursor: 'pointer',
-                      '&:hover': { textDecoration: 'underline' }
-                    }}
-                    onClick={() => handleCommentClick(post.id)}
-                  >
-                    View more comments
-                  </Typography>
-                )}
-              </Box>
-            )}
-
-            {/* Add Comment */}
-            <Box display="flex" p={2} pt={0}>
-              <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
-              <Box flexGrow={1} position="relative">
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  placeholder="Write a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  InputProps={{
-                    sx: {
-                      borderRadius: 6,
-                      backgroundColor: 'background.default',
-                      pr: 6
-                    }
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  sx={{ 
-                    position: 'absolute', 
-                    right: 8, 
-                    top: '50%', 
-                    transform: 'translateY(-50%)' 
-                  }}
-                  onClick={() => handleAddComment(post.id)}
-                  disabled={!newComment.trim()}
-                >
-                  <Send color={newComment.trim() ? 'primary' : 'disabled'} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Comments Dialog */}
-            <Dialog 
-              open={openComments === post.id} 
-              onClose={handleCloseComments}
-              fullWidth
-              maxWidth="sm"
-              PaperProps={{ sx: { borderRadius: 2 } }}
-            >
-              <DialogTitle sx={{ fontWeight: 'bold' }}>
-                Comments
-              </DialogTitle>
-              <DialogContent sx={{ p: 0 }}>
-                <List>
-                  {getCommentsForPost(post.id).map(comment => (
-                    <ListItem key={comment.id} sx={{ alignItems: 'flex-start' }}>
-                      <ListItemAvatar>
-                        <Avatar>U</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <>
-                            <Typography variant="subtitle2" fontWeight="bold">
-                              {comment.userName || 'User'}
-                            </Typography>
-                            <Typography variant="body2">
-                              {comment.comment}
-                            </Typography>
-                          </>
-                        }
-                        secondary={
-                          <Typography variant="caption" color="textSecondary">
-                            {new Date().toLocaleString()}
-                          </Typography>
-                        }
-                        sx={{ my: 0 }}
-                      />
-                      <ListItemSecondaryAction>
-                        <IconButton 
+                    <Avatar sx={{ width: 32, height: 32, mr: 1 }}>{comment.userName?.charAt(0) || 'U'}</Avatar>
+                    {editingComment === comment.id ? (
+                      <Box flexGrow={1}>
+                        <TextField
+                          fullWidth
+                          multiline
+                          variant="outlined"
                           size="small"
+                          value={editedCommentText}
+                          onChange={(e) => setEditedCommentText(e.target.value)}
+                          sx={{ mb: 1 }}
+                        />
+                        <Box display="flex" justifyContent="flex-end">
+                          <Button 
+                            size="small" 
+                            onClick={handleCancelEditing}
+                            sx={{ mr: 1 }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            size="small" 
+                            variant="contained" 
+                            onClick={() => handleUpdateComment(post.id)}
+                            disabled={!editedCommentText.trim() || commentLoading}
+                          >
+                            {commentLoading ? <CircularProgress size={20} /> : 'Update'}
+                          </Button>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <>
+                        <Box 
+                          sx={{ 
+                            backgroundColor: 'background.default',
+                            borderRadius: 2,
+                            p: 1.5,
+                            flexGrow: 1
+                          }}
+                        >
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {comment.userName || 'User'}
+                          </Typography>
+                          <Typography variant="body2">
+                            {comment.comment}
+                          </Typography>
+                        </Box>
+                        <IconButton 
+                          size="small" 
                           onClick={(e) => handleCommentMenuOpen(e, comment.id)}
                         >
                           <MoreVert fontSize="small" />
                         </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-              </DialogContent>
-              <Box p={2}>
-                <Box display="flex">
-                  <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
-                  <Box flexGrow={1} position="relative">
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      placeholder="Write a comment..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      InputProps={{
-                        sx: {
-                          borderRadius: 6,
-                          backgroundColor: 'background.default',
-                          pr: 6
-                        }
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      sx={{ 
-                        position: 'absolute', 
-                        right: 8, 
-                        top: '50%', 
-                        transform: 'translateY(-50%)' 
-                      }}
-                      onClick={() => handleAddComment(post.id)}
-                      disabled={!newComment.trim() || commentLoading}
-                    >
-                      {commentLoading ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <Send color={newComment.trim() ? 'primary' : 'disabled'} />
-                      )}
-                    </IconButton>
+                      </>
+                    )}
                   </Box>
+                ))}
+              </Box>
+
+              {/* Add Comment */}
+              <Box display="flex" p={2} pt={0}>
+                <Avatar sx={{ width: 32, height: 32, mr: 1 }}>U</Avatar>
+                <Box flexGrow={1} position="relative">
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    InputProps={{
+                      sx: {
+                        borderRadius: 6,
+                        backgroundColor: 'background.default',
+                        pr: 6
+                      }
+                    }}
+                  />
+                  <IconButton
+                    size="small"
+                    sx={{ 
+                      position: 'absolute', 
+                      right: 8, 
+                      top: '50%', 
+                      transform: 'translateY(-50%)' 
+                    }}
+                    onClick={() => handleAddComment(post.id)}
+                    disabled={!newComment.trim() || commentLoading}
+                  >
+                    {commentLoading ? <CircularProgress size={20} /> : <Send color={newComment.trim() ? 'primary' : 'disabled'} />}
+                  </IconButton>
                 </Box>
               </Box>
-            </Dialog>
+            </Collapse>
 
             {/* Comment Options Menu */}
             <Menu
@@ -550,10 +582,20 @@ const PostList = () => {
               onClose={handleCommentMenuClose}
             >
               <MenuItem onClick={() => {
-                handleDeleteComment(activeComment);
+                const postId = Object.keys(comments).find(key => 
+                  comments[key].some(comment => comment.id === activeComment)
+                );
+                if (postId) {
+                  handleDeleteComment(postId, activeComment);
+                }
                 handleCommentMenuClose();
               }}>
                 <Delete sx={{ mr: 1 }} /> Delete
+              </MenuItem>
+              <MenuItem onClick={() => {
+                handleStartEditing(activeComment);
+              }}>
+                <Edit sx={{ mr: 1 }} /> Edit
               </MenuItem>
               <MenuItem onClick={handleCommentMenuClose}>
                 <Flag sx={{ mr: 1 }} /> Report
