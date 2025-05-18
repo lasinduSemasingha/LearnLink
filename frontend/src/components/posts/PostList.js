@@ -30,12 +30,8 @@ import {
   InsertPhoto,
   Flag,
   Edit
-  Flag,
-  Edit
 } from '@mui/icons-material';
 
-const POST_IMAGE_URL = "https://images.unsplash.com/photo-1550592704-6c76defa9985?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
-// Function to get a random technical image from Unsplash
 const getRandomTechImage = () => {
   const randomSeed = Math.random().toString(36).substring(2, 10); // random 8-char string
   return `https://picsum.photos/seed/${randomSeed}/800/600`;
@@ -63,6 +59,7 @@ const PostList = () => {
   const [expandedComments, setExpandedComments] = useState({});
   const [postLikes, setPostLikes] = useState({});
   const [postImages, setPostImages] = useState({});
+  const [allComments, setAllComments] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
