@@ -55,6 +55,7 @@ const PostList = () => {
   const [activeComment, setActiveComment] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [postLikes, setPostLikes] = useState({});
+  const [postImages, setPostImages] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,9 +70,10 @@ const PostList = () => {
         const postsData = await postsResponse.json();
         setPosts(postsData);
 
-        // Initialize likes for each post and check if liked
+        // Initialize likes and images for each post
         const initialLikes = {};
         const initialLikedPosts = [];
+        const initialImages = {};
         
         await Promise.all(postsData.map(async (post) => {
           // Get like count
@@ -91,10 +93,14 @@ const PostList = () => {
           if (isLiked) {
             initialLikedPosts.push(post.id);
           }
+
+          // Set a fixed image for each post
+          initialImages[post.id] = getRandomTechImage();
         }));
 
         setPostLikes(initialLikes);
         setLikedPosts(initialLikedPosts);
+        setPostImages(initialImages);
 
         // Initialize comments structure for each post
         const commentsStructure = {};
@@ -454,14 +460,14 @@ const PostList = () => {
                 {post.description}
               </Typography>
               
-              {/* Post Image */}
+              {/* Post Image - Now using the stored image URL */}
               <Box 
                 borderRadius={1}
                 mb={2}
                 overflow="hidden"
                 sx={{
                   height: '400px',
-                  backgroundImage: `url(${getRandomTechImage()})`,
+                  backgroundImage: `url(${postImages[post.id]})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   cursor: 'pointer'

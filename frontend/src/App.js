@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from './components/common/Header';
 import Sidebar from './components/common/Sidebar';
 import Footer from './components/common/Footer';
@@ -22,9 +22,13 @@ const App = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [user, setUser] = useState(null);
 
-  // Parse userInfo safely from sessionStorage
-  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+  // ✅ Set user from localStorage on first load
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    setUser(userInfo);
+  }, []);
 
   const handleDrawerToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -95,20 +99,19 @@ const App = () => {
                 <Route path="/notifications/:id" element={<NotificationDetail />} />
                 <Route path="/posts/update/:id" element={<UpdatePostPage />} />
                 <Route path="/courses/progress" element={<CoursesWithProgress />} />
-
-                {/* Add more routes as needed */}
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/mentors" element={<MentorProfiles />} />
-
-                {/* Authentication Urls */}
                 <Route path="/home" element={<Home />} />
 
-                {/* Enrolled courses page */}
-                <Route
-                  path="/my-courses"
-                  element={<EnrolledCourses studentId={userInfo.email} />}
-                />
+                {/* ✅ Safely render only if user is available */}
+                {user && (
+                  <Route
+                    path="/my-courses"
+                    element={<EnrolledCourses studentId={user.email} />}
+                  />
+                )}
               </Routes>
+
               <Box sx={{ mt: 'auto', pt: 4 }}>
                 <Footer />
               </Box>
