@@ -40,7 +40,7 @@ public class EnrollmentService {
         notificationDTO.setTitle("New Enrollment");
         notificationDTO.setDescription("Student " + studentId + " enrolled in course " + courseId);
         notificationDTO.setSender("System");
-        notificationDTO.setStatus(true);
+        notificationDTO.setStatus(false);
 
         notificationService.createNotification(notificationDTO);
 

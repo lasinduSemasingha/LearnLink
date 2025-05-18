@@ -17,15 +17,28 @@ import {
   DialogContentText,
   DialogTitle,
   useTheme,
-  Stack
+  Stack,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  IconButton,
+  Tooltip
 } from "@mui/material";
 import {
   CheckCircleOutline,
   School,
   Person,
-  TrendingUp
+  TrendingUp,
+  Search,
+  PictureAsPdf,
+  Download
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
+import { saveAs } from 'file-saver';
+import * as htmlToImage from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 const ProgressButton = styled(Button)(({ theme, completed }) => ({
   textTransform: "none",
@@ -56,6 +69,7 @@ const CourseCard = styled(Card)(({ theme }) => ({
 
 function EnrolledCourses({ studentId }) {
   const [enrollments, setEnrollments] = useState([]);
+  const [filteredEnrollments, setFilteredEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [courseDetails, setCourseDetails] = useState({});
@@ -64,6 +78,9 @@ function EnrolledCourses({ studentId }) {
   const [unenrollDialogOpen, setUnenrollDialogOpen] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [unenrolling, setUnenrolling] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [progressFilter, setProgressFilter] = useState("all");
+  const [generatingReport, setGeneratingReport] = useState(false);
   const theme = useTheme();
 
   // Fetch enrolled courses on mount
@@ -85,6 +102,7 @@ function EnrolledCourses({ studentId }) {
 
         const data = await response.json();
         setEnrollments(data);
+        setFilteredEnrollments(data);
 
         // Fetch details for each course
         data.forEach((enrollment) => {
@@ -99,6 +117,38 @@ function EnrolledCourses({ studentId }) {
 
     fetchEnrollments();
   }, [studentId]);
+
+  // Filter enrollments based on search term and progress filter
+  useEffect(() => {
+    let filtered = enrollments;
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(enrollment => {
+        const course = courseDetails[enrollment.courseId] || {};
+        const courseTitle = course.title || `Course ${enrollment.courseId}`;
+        return courseTitle.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    }
+    
+    // Apply progress filter
+    if (progressFilter !== "all") {
+      const progressValue = parseInt(progressFilter);
+      filtered = filtered.filter(enrollment => {
+        if (progressFilter === "completed") {
+          return enrollment.completionPercentage === 100;
+        } else if (progressFilter === "in-progress") {
+          return enrollment.completionPercentage > 0 && enrollment.completionPercentage < 100;
+        } else if (progressFilter === "not-started") {
+          return enrollment.completionPercentage === 0;
+        } else {
+          return true;
+        }
+      });
+    }
+    
+    setFilteredEnrollments(filtered);
+  }, [searchTerm, progressFilter, enrollments, courseDetails]);
 
   // Fetch course details
   const fetchCourseDetails = async (courseId) => {
@@ -227,6 +277,89 @@ function EnrolledCourses({ studentId }) {
     }
   };
 
+  // Generate PDF report
+  const generateReport = async () => {
+    setGeneratingReport(true);
+    
+    try {
+      // Create a new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text('My Learning Progress Report', 105, 20, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+      
+      // Add student ID
+      doc.text(`Student ID: ${studentId}`, 105, 40, { align: 'center' });
+      
+      // Add summary statistics
+      const totalCourses = enrollments.length;
+      const completedCourses = enrollments.filter(e => e.completionPercentage === 100).length;
+      const inProgressCourses = enrollments.filter(e => e.completionPercentage > 0 && e.completionPercentage < 100).length;
+      const notStartedCourses = enrollments.filter(e => e.completionPercentage === 0).length;
+      
+      doc.setFontSize(14);
+      doc.text('Summary Statistics', 14, 60);
+      doc.setFontSize(12);
+      doc.text(`Total Courses Enrolled: ${totalCourses}`, 14, 70);
+      doc.text(`Completed Courses: ${completedCourses}`, 14, 80);
+      doc.text(`Courses In Progress: ${inProgressCourses}`, 14, 90);
+      doc.text(`Courses Not Started: ${notStartedCourses}`, 14, 100);
+      
+      // Add course details
+      doc.setFontSize(14);
+      doc.text('Course Details', 14, 120);
+      
+      let yPosition = 130;
+      filteredEnrollments.forEach((enrollment, index) => {
+        const course = courseDetails[enrollment.courseId] || {};
+        const courseTitle = course.title || `Course ${enrollment.courseId}`;
+        
+        // Add course title and progress
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${index + 1}. ${courseTitle}`, 14, yPosition);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Progress: ${enrollment.completionPercentage}%`, 14, yPosition + 6);
+        
+        // Add progress bar
+        doc.setDrawColor(200, 200, 200);
+        doc.setFillColor(200, 200, 200);
+        doc.rect(14, yPosition + 10, 180, 5, 'F');
+        
+        const progressWidth = (180 * enrollment.completionPercentage) / 100;
+        if (enrollment.completionPercentage === 100) {
+          doc.setFillColor(46, 125, 50); // Green for completed
+        } else if (enrollment.completionPercentage > 0) {
+          doc.setFillColor(25, 118, 210); // Blue for in progress
+        } else {
+          doc.setFillColor(158, 158, 158); // Gray for not started
+        }
+        doc.rect(14, yPosition + 10, progressWidth, 5, 'F');
+        
+        yPosition += 25;
+        
+        // Add page break if needed
+        if (yPosition > 250 && index < filteredEnrollments.length - 1) {
+          doc.addPage();
+          yPosition = 30;
+        }
+      });
+      
+      // Save the PDF
+      doc.save(`learning-progress-report-${studentId}.pdf`);
+    } catch (err) {
+      console.error('Error generating report:', err);
+      alert('Failed to generate report. Please try again.');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box
@@ -258,9 +391,51 @@ function EnrolledCourses({ studentId }) {
         <Typography variant="h4" component="h1">
           Your Enrolled Courses
         </Typography>
+        
+        <Box ml="auto" display="flex" alignItems="center">
+          <Tooltip title="Generate PDF Report">
+            <IconButton 
+              onClick={generateReport} 
+              disabled={generatingReport || enrollments.length === 0}
+              color="primary"
+              sx={{ mr: 2 }}
+            >
+              {generatingReport ? <CircularProgress size={24} /> : <PictureAsPdf />}
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
-      {enrollments.length === 0 ? (
+      {/* Search and Filter Section */}
+      <Box mb={4} display="flex" flexWrap="wrap" gap={2}>
+        <TextField
+          variant="outlined"
+          placeholder="Search courses..."
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: <Search color="action" sx={{ mr: 1 }} />,
+          }}
+          sx={{ minWidth: 250, flexGrow: 1 }}
+        />
+        
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel>Progress Filter</InputLabel>
+          <Select
+            value={progressFilter}
+            label="Progress Filter"
+            onChange={(e) => setProgressFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Courses</MenuItem>
+            <MenuItem value="completed">Completed</MenuItem>
+            <MenuItem value="in-progress">In Progress</MenuItem>
+            <MenuItem value="not-started">Not Started</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {filteredEnrollments.length === 0 ? (
         <Box
           textAlign="center"
           p={4}
@@ -268,16 +443,17 @@ function EnrolledCourses({ studentId }) {
           borderRadius={1}
         >
           <Typography variant="h6" color="textSecondary" gutterBottom>
-            No Enrolled Courses
+            {enrollments.length === 0 ? 'No Enrolled Courses' : 'No Courses Match Your Search'}
           </Typography>
           <Typography variant="body1" color="textSecondary">
-            You haven't enrolled in any courses yet. Explore our catalog to get
-            started!
+            {enrollments.length === 0 
+              ? "You haven't enrolled in any courses yet. Explore our catalog to get started!"
+              : "Try adjusting your search or filter criteria."}
           </Typography>
         </Box>
       ) : (
         <Grid container spacing={4}>
-          {enrollments.map((enrollment) => {
+          {filteredEnrollments.map((enrollment) => {
             const course = courseDetails[enrollment.courseId] || {};
             const isLoading = loadingCourses[enrollment.courseId];
             const isUpdating = updatingProgress[enrollment.id];
@@ -368,109 +544,109 @@ function EnrolledCourses({ studentId }) {
                                   : progress >= 50
                                   ? "primary"
                                   : "default"
-}
-size="small"
-/>
-</Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progress}
-                        sx={{
-                          height: 8,
-                          borderRadius: 4,
-                          backgroundColor: theme.palette.grey[200],
-                          "& .MuiLinearProgress-bar": {
-                            borderRadius: 4,
-                          },
-                        }}
-                      />
-
-                      <Box
-                        mt={2}
-                        display="flex"
-                        justifyContent="space-between"
-                        flexWrap="wrap"
-                        gap={1}
-                        mb={2}
-                      >
-                        {[25, 50, 75, 100].map((value, index) => {
-                          const stage = index + 1;
-                          const isCompleted = progress >= value;
-
-                          return (
-                            <ProgressButton
-                              key={stage}
-                              onClick={() =>
-                                updateProgress(enrollment.id, value)
                               }
-                              disabled={isCompleted || isUpdating}
-                              completed={isCompleted}
                               size="small"
-                              startIcon={isCompleted ? <CheckCircleOutline /> : null}
+                            />
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={progress}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: theme.palette.grey[200],
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 4,
+                              },
+                            }}
+                          />
+
+                          <Box
+                            mt={2}
+                            display="flex"
+                            justifyContent="space-between"
+                            flexWrap="wrap"
+                            gap={1}
+                            mb={2}
+                          >
+                            {[25, 50, 75, 100].map((value, index) => {
+                              const stage = index + 1;
+                              const isCompleted = progress >= value;
+
+                              return (
+                                <ProgressButton
+                                  key={stage}
+                                  onClick={() =>
+                                    updateProgress(enrollment.id, value)
+                                  }
+                                  disabled={isCompleted || isUpdating}
+                                  completed={isCompleted}
+                                  size="small"
+                                  startIcon={isCompleted ? <CheckCircleOutline /> : null}
+                                >
+                                  Stage {stage}
+                                </ProgressButton>
+                              );
+                            })}
+                          </Box>
+
+                          {/* Unenroll Button */}
+                          <Stack direction="row" justifyContent="flex-end">
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              onClick={() => handleOpenUnenrollDialog(enrollment)}
+                              disabled={unenrolling}
                             >
-                              Stage {stage}
-                            </ProgressButton>
-                          );
-                        })}
-                      </Box>
+                              Unenroll
+                            </Button>
+                          </Stack>
+                        </Box>
+                      </>
+                    )}
+                  </CardContent>
+                </CourseCard>
+              </Grid>
+            );
+          })}
+        </Grid>
+      )}
 
-                      {/* Unenroll Button */}
-                      <Stack direction="row" justifyContent="flex-end">
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          onClick={() => handleOpenUnenrollDialog(enrollment)}
-                          disabled={unenrolling}
-                        >
-                          Unenroll
-                        </Button>
-                      </Stack>
-                    </Box>
-                  </>
-                )}
-              </CardContent>
-            </CourseCard>
-          </Grid>
-        );
-      })}
-    </Grid>
-  )}
-
-  {/* Confirmation Dialog */}
-  <Dialog
-    open={unenrollDialogOpen}
-    onClose={handleCloseUnenrollDialog}
-    aria-labelledby="unenroll-dialog-title"
-    aria-describedby="unenroll-dialog-description"
-  >
-    <DialogTitle id="unenroll-dialog-title">Confirm Unenroll</DialogTitle>
-    <DialogContent>
-      <DialogContentText id="unenroll-dialog-description">
-        Are you sure you want to unenroll from{" "}
-        <strong>
-          {selectedEnrollment
-            ? courseDetails[selectedEnrollment.courseId]?.title ||
-              `Course ${selectedEnrollment.courseId}`
-            : ""}
-        </strong>
-        ? This action cannot be undone.
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={handleCloseUnenrollDialog} disabled={unenrolling}>
-        No
-      </Button>
-      <Button
-        onClick={handleConfirmUnenroll}
-        color="error"
-        disabled={unenrolling}
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={unenrollDialogOpen}
+        onClose={handleCloseUnenrollDialog}
+        aria-labelledby="unenroll-dialog-title"
+        aria-describedby="unenroll-dialog-description"
       >
-        Yes
-      </Button>
-    </DialogActions>
-  </Dialog>
-</Box>
-);
+        <DialogTitle id="unenroll-dialog-title">Confirm Unenroll</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="unenroll-dialog-description">
+            Are you sure you want to unenroll from{" "}
+            <strong>
+              {selectedEnrollment
+                ? courseDetails[selectedEnrollment.courseId]?.title ||
+                  `Course ${selectedEnrollment.courseId}`
+                : ""}
+            </strong>
+            ? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseUnenrollDialog} disabled={unenrolling}>
+            No
+          </Button>
+          <Button
+            onClick={handleConfirmUnenroll}
+            color="error"
+            disabled={unenrolling}
+          >
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
 }
 
 export default EnrolledCourses;

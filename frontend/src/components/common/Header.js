@@ -203,9 +203,34 @@ const Header = ({ onDrawerToggle, sidebarOpen, isMobile }) => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <Typography variant="subtitle1" sx={{ px: 2, pt: 1 }}>
-                  Notifications
-                </Typography>
+                <Typography 
+  variant="subtitle1" 
+  sx={{ 
+    px: 2, 
+    pt: 1,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  }}
+>
+  Notifications
+  <Button 
+    component={Link}
+    to="/notifications"
+    size="small"
+    variant="text"
+    sx={{
+      textTransform: 'none',
+      color: 'primary.main',
+      '&:hover': {
+        backgroundColor: 'transparent',
+        textDecoration: 'underline'
+      }
+    }}
+  >
+    View All
+  </Button>
+</Typography>
                 <Divider />
                 {loading ? (
                   <MenuItem>

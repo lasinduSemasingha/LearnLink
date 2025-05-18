@@ -10,21 +10,11 @@ import {
   Divider,
   TextField,
   Button,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  ListItemSecondaryAction,
   Snackbar,
   Alert,
   Chip,
   Menu,
   MenuItem,
-  Tooltip,
   Collapse
 } from '@mui/material';
 import {
@@ -42,7 +32,11 @@ import {
   Edit
 } from '@mui/icons-material';
 
-const POST_IMAGE_URL = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80";
+// Function to get a random technical image from Unsplash
+const getRandomTechImage = () => {
+  const randomSeed = Math.random().toString(36).substring(2, 10); // random 8-char string
+  return `https://picsum.photos/seed/${randomSeed}/800/600`;
+};
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
@@ -61,7 +55,7 @@ const PostList = () => {
   const [activeComment, setActiveComment] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [postLikes, setPostLikes] = useState({});
-  const [allComments, setAllComments] = useState([]);
+  const [postImages, setPostImages] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,20 +63,22 @@ const PostList = () => {
         // Fetch posts
         const postsResponse = await fetch('http://localhost:8085/api/post', {
           method: 'GET',
-          credentials: 'include', // send the login session cookie
+          credentials: 'include',
         });
 
         if (!postsResponse.ok) throw new Error('Failed to fetch posts');
         const postsData = await postsResponse.json();
         setPosts(postsData);
 
-
-        // Initialize likes for each post
+        // Initialize likes and images for each post
         const initialLikes = {};
+        const initialImages = {};
         postsData.forEach(post => {
           initialLikes[post.id] = post.likes || 24;
+          initialImages[post.id] = getRandomTechImage();
         });
         setPostLikes(initialLikes);
+        setPostImages(initialImages);
 
         // Initialize comments structure for each post
         const commentsStructure = {};
@@ -94,11 +90,12 @@ const PostList = () => {
         // Fetch all comments for each post
         await Promise.all(postsData.map(async (post) => {
           const commentsResponse = await fetch(`http://localhost:8085/api/comments?postId=${post.id}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }});
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
           if (!commentsResponse.ok) throw new Error(`Failed to fetch comments for post ${post.id}`);
           const commentsData = await commentsResponse.json();
           
@@ -107,14 +104,6 @@ const PostList = () => {
             [post.id]: commentsData
           }));
         }));
-        // Fetch all comments
-        const commentsResponse = await fetch('http://localhost:8085/api/comments', {
-          method: 'GET',
-          credentials: 'include', // send the login session cookie
-        });
-        if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
-        const commentsData = await commentsResponse.json();
-        setAllComments(commentsData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -154,7 +143,8 @@ const PostList = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },credentials: 'include',
+        },
+        credentials: 'include',
         body: JSON.stringify({
           postId: postId.toString(),
           comment: newComment,
@@ -216,7 +206,8 @@ const PostList = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },credentials: 'include',
+        },
+        credentials: 'include',
         body: JSON.stringify({
           comment: editedCommentText
         })
@@ -421,7 +412,7 @@ const PostList = () => {
                 overflow="hidden"
                 sx={{
                   height: '400px',
-                  backgroundImage: `url(${POST_IMAGE_URL})`,
+                  backgroundImage: `url(${postImages[post.id]})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   cursor: 'pointer'
@@ -481,7 +472,7 @@ const PostList = () => {
             </Box>
             <Divider />
 
-            {/* Comments Section - Now appears when clicking Comment button */}
+            {/* Comments Section */}
             <Collapse in={expandedComments[post.id]}>
               <Box p={2}>
                 {comments[post.id]?.map(comment => (

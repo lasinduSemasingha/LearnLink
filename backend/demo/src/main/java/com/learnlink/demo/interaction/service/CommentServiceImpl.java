@@ -3,8 +3,11 @@ package com.learnlink.demo.interaction.service;
 import com.learnlink.demo.interaction.dto.CommentDTO;
 import com.learnlink.demo.interaction.entity.Comment;
 import com.learnlink.demo.interaction.repository.CommentRepository;
+import com.learnlink.demo.notification.dto.NotificationDTO;
+import com.learnlink.demo.notification.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +17,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private CommentRepository repository;
+
+    @Autowired
+    private NotificationService notificationService; // Fix: Add this to call notificationService
 
     private CommentDTO mapToDTO(Comment comment) {
         CommentDTO dto = new CommentDTO();
@@ -31,9 +37,20 @@ public class CommentServiceImpl implements CommentService {
         return comment;
     }
 
-    @Override
+    @Transactional
     public CommentDTO createComment(CommentDTO dto) {
-        return mapToDTO(repository.save(mapToEntity(dto)));
+        Comment savedComment = repository.save(mapToEntity(dto));
+
+        // Create notification after comment creation
+        NotificationDTO notificationDTO = new NotificationDTO();
+        notificationDTO.setTitle("New Comment");
+        notificationDTO.setDescription("A new comment was added to post " + dto.getPostId());
+        notificationDTO.setSender("System");
+        notificationDTO.setStatus(false);
+
+        notificationService.createNotification(notificationDTO);
+
+        return mapToDTO(savedComment);
     }
 
     @Override
