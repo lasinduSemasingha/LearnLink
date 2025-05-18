@@ -1,4 +1,4 @@
-package com.learnlink.demo.enrollment;
+package com.learnlink.demo.enrollment.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -10,9 +10,23 @@ public class Enrollment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private String studentId;
+
     private Long courseId;
 
     private LocalDate enrollmentDate;
+
+    @Column(name = "completion_percentage")
+    private Integer completionPercentage;
+
+    public Integer getCompletionPercentage() {
+        return completionPercentage;
+    }
+
+    public void setCompletionPercentage(Integer completionPercentage) {
+        this.completionPercentage = completionPercentage;
+    }
 
     // Constructors
     public Enrollment() {}
@@ -24,6 +38,14 @@ public class Enrollment {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
     }
 
     public Long getCourseId() {

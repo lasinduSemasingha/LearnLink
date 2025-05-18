@@ -61,6 +61,7 @@ const PostList = () => {
   const [activeComment, setActiveComment] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [postLikes, setPostLikes] = useState({});
+  const [allComments, setAllComments] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,7 +93,12 @@ const PostList = () => {
 
         // Fetch all comments for each post
         await Promise.all(postsData.map(async (post) => {
-          const commentsResponse = await fetch(`http://localhost:8085/api/comments?postId=${post.id}`);
+          const commentsResponse = await fetch(`http://localhost:8085/api/comments?postId=${post.id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }});
           if (!commentsResponse.ok) throw new Error(`Failed to fetch comments for post ${post.id}`);
           const commentsData = await commentsResponse.json();
           
@@ -210,7 +216,7 @@ const PostList = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },
+        },credentials: 'include',
         body: JSON.stringify({
           comment: editedCommentText
         })

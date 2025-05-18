@@ -3,42 +3,52 @@ package com.learnlink.demo.user.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "app_users") // Adjust table name if needed
 public class AppUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private String googleId;
     private String email;
-    private String imageUrl;
-    private String provider;
+    private Boolean emailVerified;
+    private String name;
+    private String givenName;
+    private String familyName;
+    private String picture;
+    // You might not want to store 'iss', 'nonce', 'aud', 'azp', 'at_hash', 'exp', 'iat'
+    // unless you have specific reasons to.
 
+    // Constructors
     public AppUser() {
-
     }
 
-    public AppUser(Long id, String name,String email, String imageUrl, String provider) {
-        this.id = id;
-        this.name = name;
+    public AppUser(String googleId, String email, Boolean emailVerified, String name, String givenName, String familyName, String picture) {
+        this.googleId = googleId;
         this.email = email;
-        this.imageUrl = imageUrl;
-        this.provider = provider;
+        this.emailVerified = emailVerified;
+        this.name = name;
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.picture = picture;
     }
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getGoogleId() {
+        return googleId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
     }
 
     public String getEmail() {
@@ -49,20 +59,43 @@ public class AppUser {
         this.email = email;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public Boolean getEmailVerified() {
+        return emailVerified;
     }
 
-    public void  setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getName() {
+        return name;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public void setGivenName(String givenName) {
+        this.givenName = givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
+    }
+
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 }
-

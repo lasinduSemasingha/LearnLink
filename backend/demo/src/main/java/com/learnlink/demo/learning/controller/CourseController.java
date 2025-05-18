@@ -29,7 +29,7 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")  // Require login to create posts
+    //@PreAuthorize("isAuthenticated()")  // Require login to create posts
     public ResponseEntity<CourseDTO> get(@PathVariable Long id) {
         CourseDTO course = courseService.getCourse(id);
         if (course == null) {

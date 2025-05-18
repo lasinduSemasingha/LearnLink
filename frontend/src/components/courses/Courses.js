@@ -22,20 +22,21 @@ import {
   Videocam,
 } from '@mui/icons-material';
 
-// Consistent technical development image URL
-const TECH_IMAGE_URL = 'https://picsum.photos/600/400?random=1'; // example static coding image
+const TECH_IMAGE_URL = 'https://picsum.photos/600/400?random=1';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState(null);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await fetch('http://localhost:8085/api/courses', {
           method: 'GET',
-          credentials: 'include', // send the login session cookie
+          credentials: 'include',
         });
         if (!response.ok) {
           throw new Error('Failed to fetch courses');
@@ -50,7 +51,7 @@ const Courses = () => {
           price: Math.floor(Math.random() * 50) + 20,
           discountPrice: Math.floor(Math.random() * 20) + 10,
           category: ['Programming', 'Development', 'IT & Software'][Math.floor(Math.random() * 3)],
-          image: TECH_IMAGE_URL // Using the same image for all courses
+          image: TECH_IMAGE_URL
         }));
         setCourses(enhancedCourses);
       } catch (err) {
@@ -62,6 +63,36 @@ const Courses = () => {
 
     fetchCourses();
   }, []);
+
+  const handleEnroll = async (courseId) => {
+    setEnrolling(true);
+    setEnrollmentStatus(null);
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    try {
+      const response = await fetch('http://localhost:8085/enrollments/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          studentId: userInfo.email, // Replace with dynamic studentId from user session
+          courseId: courseId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Enrollment failed');
+      }
+
+      const data = await response.json();
+      setEnrollmentStatus({ success: true, message: 'Enrolled successfully!' });
+    } catch (err) {
+      setEnrollmentStatus({ success: false, message: err.message });
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -83,6 +114,12 @@ const Courses = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {enrollmentStatus && (
+        <Alert severity={enrollmentStatus.success ? 'success' : 'error'} sx={{ mb: 3 }}>
+          {enrollmentStatus.message}
+        </Alert>
+      )}
+
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
           Expand your career opportunities with our courses
@@ -243,13 +280,15 @@ const Courses = () => {
                     <Button 
                       variant="contained" 
                       size="small" 
+                      onClick={() => handleEnroll(course.id)}
+                      disabled={enrolling}
                       sx={{ 
                         textTransform: 'none',
                         fontWeight: 600,
                         borderRadius: 1
                       }}
                     >
-                      Enroll Now
+                      {enrolling ? 'Enrolling...' : 'Enroll Now'}
                     </Button>
                   </Box>
                 </Box>

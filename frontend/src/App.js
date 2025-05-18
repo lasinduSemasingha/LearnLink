@@ -16,11 +16,15 @@ import CoursesWithProgress from './components/courses/CoursesWithProgress';
 import LoginPage from './components/auth/LoginPage';
 import ProfilePage from './components/common/ProfilePage';
 import MentorProfiles from './components/other/MentorProfiles';
+import EnrolledCourses from './components/enrollment/EnrolledCourses';
 
 const App = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  // Parse userInfo safely from sessionStorage
+  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
   const handleDrawerToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -31,8 +35,8 @@ const App = () => {
   return (
     <Router>
       <CssBaseline />
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           minHeight: '100vh',
           backgroundImage: 'url(/background.jpg)',
           backgroundSize: 'cover',
@@ -41,20 +45,20 @@ const App = () => {
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <Box 
-          sx={{ 
-            display: 'flex', 
+        <Box
+          sx={{
+            display: 'flex',
             minHeight: '100vh',
             backgroundColor: 'rgba(255, 255, 255, 0.5)',
           }}
         >
-          <Header 
-            onDrawerToggle={handleDrawerToggle} 
+          <Header
+            onDrawerToggle={handleDrawerToggle}
             sidebarOpen={sidebarOpen}
             isMobile={isMobile}
           />
-          <Sidebar 
-            open={sidebarOpen} 
+          <Sidebar
+            open={sidebarOpen}
             onClose={handleDrawerToggle}
             isMobile={isMobile}
             drawerWidth={drawerWidth}
@@ -72,13 +76,15 @@ const App = () => {
               }),
             }}
           >
-            <Box sx={{ 
-              maxWidth: 1200,
-              margin: '0 auto',
-              minHeight: 'calc(100vh - 64px - 64px)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
+            <Box
+              sx={{
+                maxWidth: 1200,
+                margin: '0 auto',
+                minHeight: 'calc(100vh - 64px - 64px)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <Routes>
                 <Route path="/" element={<LoginPage />} />
                 <Route path="/courses" element={<Courses />} />
@@ -96,6 +102,12 @@ const App = () => {
 
                 {/* Authentication Urls */}
                 <Route path="/home" element={<Home />} />
+
+                {/* Enrolled courses page */}
+                <Route
+                  path="/my-courses"
+                  element={<EnrolledCourses studentId={userInfo.email} />}
+                />
               </Routes>
               <Box sx={{ mt: 'auto', pt: 4 }}>
                 <Footer />
