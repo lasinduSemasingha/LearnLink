@@ -18,9 +18,13 @@ public class EnrollmentController {
     private EnrollmentService enrollmentService;
 
     @PostMapping("/add")
-    public ResponseEntity<Enrollment> enrollStudent(@RequestBody EnrollmentRequest request) {
-        Enrollment enrollment = enrollmentService.enrollStudent(request.getStudentId(), request.getCourseId());
-        return ResponseEntity.ok(enrollment);
+    public ResponseEntity<?> enrollStudent(@RequestBody EnrollmentRequest request) {
+        try {
+            Enrollment enrollment = enrollmentService.enrollStudent(request.getStudentId(), request.getCourseId());
+            return ResponseEntity.ok(enrollment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/all")
@@ -34,6 +38,7 @@ public class EnrollmentController {
         List<Enrollment> enrollments = enrollmentService.getEnrollmentsByStudentId(studentId);
         return ResponseEntity.ok(enrollments);
     }
+
     @PatchMapping("/progress/{enrollmentId}")
     public ResponseEntity<Enrollment> updateProgress(@PathVariable Long enrollmentId,
                                                      @RequestBody ProgressUpdateRequest request) {
@@ -44,6 +49,6 @@ public class EnrollmentController {
     @DeleteMapping("/unenroll/{enrollmentId}")
     public ResponseEntity<Void> unEnrollStudent(@PathVariable Long enrollmentId) {
         enrollmentService.unEnrollStudent(enrollmentId);
-        return ResponseEntity.noContent().build();  // 204 No Content response
+        return ResponseEntity.noContent().build();
     }
 }

@@ -82,11 +82,12 @@ const Courses = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Enrollment failed');
+        throw new Error('Already enrolled in this course');
       }
 
       const data = await response.json();
       setEnrollmentStatus({ success: true, message: 'Enrolled successfully!' });
+      window.location.href = '/my-courses';
     } catch (err) {
       setEnrollmentStatus({ success: false, message: err.message });
     } finally {

@@ -4,9 +4,9 @@ import com.learnlink.demo.enrollment.entity.Enrollment;
 import com.learnlink.demo.enrollment.repository.EnrollmentRepository;
 import com.learnlink.demo.notification.dto.NotificationDTO;
 import com.learnlink.demo.notification.service.NotificationService;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,12 +20,31 @@ public class EnrollmentService {
     @Autowired
     private NotificationService notificationService;
 
+    @Transactional
     public Enrollment enrollStudent(String studentId, Long courseId) {
+        // Check if enrollment exists
+        boolean alreadyEnrolled = enrollmentRepository.findByStudentIdAndCourseId(studentId, courseId).isPresent();
+        if (alreadyEnrolled) {
+            throw new IllegalArgumentException("Student " + studentId + " is already enrolled in course " + courseId);
+        }
+
         Enrollment enrollment = new Enrollment();
         enrollment.setStudentId(studentId);
         enrollment.setCourseId(courseId);
         enrollment.setEnrollmentDate(LocalDate.now());
-        return enrollmentRepository.save(enrollment);
+        enrollment.setCompletionPercentage(0);
+        enrollment = enrollmentRepository.save(enrollment);
+
+        // Create notification after enrollment
+        NotificationDTO notificationDTO = new NotificationDTO();
+        notificationDTO.setTitle("New Enrollment");
+        notificationDTO.setDescription("Student " + studentId + " enrolled in course " + courseId);
+        notificationDTO.setSender("System");
+        notificationDTO.setStatus(true);
+
+        notificationService.createNotification(notificationDTO);
+
+        return enrollment;
     }
 
     public List<Enrollment> getAllEnrollments() {
@@ -37,38 +56,12 @@ public class EnrollmentService {
     }
 
     public Enrollment updateProgress(Long enrollmentId, Integer completionPercentage) {
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId).orElseThrow(() -> new RuntimeException("Enrollment not found"));
         enrollment.setCompletionPercentage(completionPercentage);
         return enrollmentRepository.save(enrollment);
     }
 
     public void unEnrollStudent(Long enrollmentId) {
         enrollmentRepository.deleteById(enrollmentId);
-    }
-
-
-    @Transactional
-    public Enrollment enrollStudentInCourse(String studentId, Long courseId) {
-        // Create enrollment entity and set fields
-        Enrollment enrollment = new Enrollment();
-        enrollment.setStudentId(studentId);
-        enrollment.setCourseId(courseId);
-        enrollment.setEnrollmentDate(LocalDate.now());
-        enrollment.setCompletionPercentage(0); // Assuming starting at 0%
-
-        enrollment = enrollmentRepository.save(enrollment);
-
-        // Create notification DTO
-        NotificationDTO notificationDTO = new NotificationDTO();
-        notificationDTO.setTitle("New Enrollment");
-        notificationDTO.setDescription("Student with ID " + studentId + " enrolled in course ID " + courseId);
-        notificationDTO.setSender("System");
-        notificationDTO.setStatus(false);  // Assuming status is String in DTO
-
-        notificationService.createNotification(notificationDTO);
-
-        return enrollment;
     }
 }
