@@ -280,7 +280,7 @@ const PostList = () => {
 
     try {
       setIsCreatingPost(true);
-      const response = await fetch('http://localhost:8085/api/post', {
+      const response = await fetch('http://localhost:8085/api/post', {   
         method: 'POST',
         credentials: 'include',
         headers: {
