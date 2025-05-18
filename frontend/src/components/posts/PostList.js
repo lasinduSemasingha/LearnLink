@@ -55,7 +55,6 @@ const PostList = () => {
   const [activeComment, setActiveComment] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [postLikes, setPostLikes] = useState({});
-  const [postImages, setPostImages] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,15 +69,32 @@ const PostList = () => {
         const postsData = await postsResponse.json();
         setPosts(postsData);
 
-        // Initialize likes and images for each post
+        // Initialize likes for each post and check if liked
         const initialLikes = {};
-        const initialImages = {};
-        postsData.forEach(post => {
-          initialLikes[post.id] = post.likes || 24;
-          initialImages[post.id] = getRandomTechImage();
-        });
+        const initialLikedPosts = [];
+        
+        await Promise.all(postsData.map(async (post) => {
+          // Get like count
+          const countResponse = await fetch(`http://localhost:8085/api/likes/count/${post.id}`, {
+            method: 'GET',
+            credentials: 'include',
+          });
+          const countData = await countResponse.json();
+          initialLikes[post.id] = countData;
+          
+          // Check if current user liked the post
+          const isLikedResponse = await fetch(`http://localhost:8085/api/likes/isLiked/${post.id}`, {
+            method: 'GET',
+            credentials: 'include',
+          });
+          const isLiked = await isLikedResponse.json();
+          if (isLiked) {
+            initialLikedPosts.push(post.id);
+          }
+        }));
+
         setPostLikes(initialLikes);
-        setPostImages(initialImages);
+        setLikedPosts(initialLikedPosts);
 
         // Initialize comments structure for each post
         const commentsStructure = {};
@@ -256,21 +272,54 @@ const PostList = () => {
     setEditedCommentText('');
   };
 
-  const handleLikePost = (postId) => {
-    const newLikedPosts = [...likedPosts];
-    const newPostLikes = {...postLikes};
-    
-    if (newLikedPosts.includes(postId)) {
-      const index = newLikedPosts.indexOf(postId);
-      newLikedPosts.splice(index, 1);
-      newPostLikes[postId] -= 1;
-    } else {
-      newLikedPosts.push(postId);
-      newPostLikes[postId] += 1;
+  const handleLikePost = async (postId) => {
+    try {
+      if (likedPosts.includes(postId)) {
+        // Unlike the post
+        const response = await fetch('http://localhost:8085/api/likes', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            postId: postId.toString()
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to unlike post');
+
+        setLikedPosts(prev => prev.filter(id => id !== postId));
+        setPostLikes(prev => ({
+          ...prev,
+          [postId]: prev[postId] - 1
+        }));
+      } else {
+        // Like the post
+        const response = await fetch('http://localhost:8085/api/likes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            postId: postId.toString()
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to like post');
+
+        setLikedPosts(prev => [...prev, postId]);
+        setPostLikes(prev => ({
+          ...prev,
+          [postId]: prev[postId] + 1
+        }));
+      }
+    } catch (err) {
+      setError(err.message);
+      setSnackbarMessage('Failed to update like');
+      setSnackbarOpen(true);
     }
-    
-    setLikedPosts(newLikedPosts);
-    setPostLikes(newPostLikes);
   };
 
   const toggleCommentsExpansion = (postId) => {
@@ -412,7 +461,7 @@ const PostList = () => {
                 overflow="hidden"
                 sx={{
                   height: '400px',
-                  backgroundImage: `url(${postImages[post.id]})`,
+                  backgroundImage: `url(${getRandomTechImage()})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   cursor: 'pointer'
