@@ -23,7 +23,8 @@ import {
   Alert,
   Chip,
   Menu,
-  MenuItem
+  MenuItem,
+  InputAdornment
 } from '@mui/material';
 import { 
   ThumbUp, 
@@ -37,13 +38,15 @@ import {
   EmojiEmotions,
   InsertPhoto,
   Flag,
-  Edit
+  Edit,
+  Search
 } from '@mui/icons-material';
 
 const POST_IMAGE_URL = "https://images.unsplash.com/photo-1550592704-6c76defa9985?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allComments, setAllComments] = useState([]);
@@ -60,6 +63,7 @@ const PostList = () => {
   const [updatedDescription, setUpdatedDescription] = useState('');
   const [postContent, setPostContent] = useState('');
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +77,7 @@ const PostList = () => {
         if (!postsResponse.ok) throw new Error('Failed to fetch posts');
         const postsData = await postsResponse.json();
         setPosts(postsData);
+        setFilteredPosts(postsData);
 
         // Fetch all comments
         const commentsResponse = await fetch('http://localhost:8085/api/comments', {
@@ -91,6 +96,17 @@ const PostList = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredPosts(posts);
+    } else {
+      const filtered = posts.filter(post =>
+        post.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPosts(filtered);
+    }
+  }, [searchTerm, posts]);
 
   const handleMenuOpen = (event, postId) => {
     setAnchorEl(event.currentTarget);
@@ -312,6 +328,34 @@ const PostList = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 2 }}>
+      {/* Search Bar */}
+      <Paper elevation={0} sx={{ 
+        mb: 3, 
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 2
+      }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search posts..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+            sx: {
+              borderRadius: 2,
+              backgroundColor: 'background.default',
+            }
+          }}
+        />
+      </Paper>
+
       {/* Create Post Card (Facebook-style) */}
       <Paper elevation={0} sx={{ 
         mb: 3, 
@@ -368,12 +412,12 @@ const PostList = () => {
         </Box>
       </Paper>
 
-      {posts.length === 0 ? (
+      {filteredPosts.length === 0 ? (
         <Typography variant="body1" color="textSecondary" align="center">
-          No posts available. Be the first to share!
+          {searchTerm.trim() ? 'No posts match your search.' : 'No posts available. Be the first to share!'}
         </Typography>
       ) : (
-        posts.map(post => (
+        filteredPosts.map(post => (
           <Paper 
             key={post.id} 
             elevation={0}
