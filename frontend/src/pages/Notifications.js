@@ -1,22 +1,25 @@
-import { 
-  Box, 
-  Typography, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  Chip, 
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
   CircularProgress,
   Avatar,
   Badge,
   IconButton,
   Divider,
-  Paper
+  Paper,
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { 
+import {
   Notifications as NotificationsIcon,
   Close as CloseIcon,
-  MarkEmailRead as MarkReadIcon
+  MarkEmailRead as MarkReadIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +37,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,6 +98,12 @@ const Notifications = () => {
     }
   };
 
+  const unreadCount = notifications.filter(n => !n.status).length;
+
+  const filteredNotifications = notifications.filter(n =>
+    n.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -114,40 +124,56 @@ const Notifications = () => {
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.status).length;
-
   return (
     <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-      <Box 
-        p={2} 
-        bgcolor="primary.main" 
+      <Box
+        p={2}
+        bgcolor="primary.main"
         color="primary.contrastText"
         display="flex"
         alignItems="center"
+        justifyContent="space-between"
       >
-        <StyledBadge badgeContent={unreadCount} color="secondary">
-          <NotificationsIcon fontSize="large" />
-        </StyledBadge>
-        <Typography variant="h5" component="h2" ml={2}>
-          Notifications
-        </Typography>
+        <Box display="flex" alignItems="center">
+          <StyledBadge badgeContent={unreadCount} color="secondary">
+            <NotificationsIcon fontSize="large" />
+          </StyledBadge>
+          <Typography variant="h5" component="h2" ml={2}>
+            Notifications
+          </Typography>
+        </Box>
       </Box>
-      
-      {notifications.length === 0 ? (
+
+      <Box p={2}>
+        <TextField
+          fullWidth
+          placeholder="Search by title..."
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            )
+          }}
+        />
+      </Box>
+
+      {filteredNotifications.length === 0 ? (
         <Box p={4} textAlign="center">
           <Typography variant="body1" color="text.secondary">
-            You don't have any notifications yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mt={1}>
-            Your skill sharing activities will appear here
+            No notifications found
           </Typography>
         </Box>
       ) : (
         <List disablePadding>
-          {notifications.map((notification, index) => (
+          {filteredNotifications.map((notification, index) => (
             <Box key={notification.id}>
-              <ListItem 
-                button 
+              <ListItem
+                button
                 onClick={() => navigate(`/notifications/${notification.id}`)}
                 sx={{
                   backgroundColor: notification.status ? 'inherit' : 'rgba(25, 118, 210, 0.08)',
@@ -157,7 +183,7 @@ const Notifications = () => {
                   }
                 }}
               >
-                <Avatar 
+                <Avatar
                   alt={notification.sender}
                   sx={{ mr: 2, bgcolor: 'secondary.main' }}
                 >
@@ -165,8 +191,8 @@ const Notifications = () => {
                 </Avatar>
                 <ListItemText
                   primary={
-                    <Typography 
-                      variant="subtitle1" 
+                    <Typography
+                      variant="subtitle1"
                       fontWeight={notification.status ? 'normal' : 'bold'}
                     >
                       {notification.title}
@@ -174,17 +200,17 @@ const Notifications = () => {
                   }
                   secondary={
                     <>
-                      <Typography 
-                        component="span" 
-                        variant="body2" 
+                      <Typography
+                        component="span"
+                        variant="body2"
                         display="block"
                         color={notification.status ? 'text.secondary' : 'text.primary'}
                       >
                         {notification.description}
                       </Typography>
-                      <Typography 
-                        component="span" 
-                        variant="caption" 
+                      <Typography
+                        component="span"
+                        variant="caption"
                         color="text.secondary"
                         display="block"
                         mt={0.5}
@@ -202,8 +228,8 @@ const Notifications = () => {
                     sx={{ mb: 1 }}
                   />
                   <Box>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleMarkAsRead(notification.id);
@@ -212,8 +238,8 @@ const Notifications = () => {
                     >
                       <MarkReadIcon fontSize="small" />
                     </IconButton>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDismiss(notification.id);
@@ -225,7 +251,7 @@ const Notifications = () => {
                   </Box>
                 </Box>
               </ListItem>
-              {index < notifications.length - 1 && <Divider />}
+              {index < filteredNotifications.length - 1 && <Divider />}
             </Box>
           ))}
         </List>
