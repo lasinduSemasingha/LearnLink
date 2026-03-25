@@ -1,0 +1,43 @@
+# ========== Global ==========
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+
+# ========== IntelliJ IDEA ==========
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ========== Java / Spring Boot (Backend) ==========
+/Backend/target/
+/Backend/build/
+*.class
+*.jar
+*.war
+
+# Optional: Exclude secrets
+/Backend/src/main/resources/application.properties
+/Backend/src/main/resources/application.yml
+
+# ========== Node.js / React (Frontend) ==========
+/Frontend/node_modules/
+/Frontend/build/
+/Frontend/dist/
+
+# Optional: VSCode settings if used
+.vscode/
+backend/demo/src/main/resources/application.properties

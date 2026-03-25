@@ -16,21 +16,21 @@ public class CourseServiceImpl implements CourseService {
     private CourseRepository repository;
 
     private CourseDTO mapToDTO(Course course) {
-        return CourseDTO.builder()
-                .id(course.getId())
-                .title(course.getTitle())
-                .description(course.getDescription())
-                .instructor(course.getInstructor())
-                .build();
+        CourseDTO dto = new CourseDTO();
+        dto.setId(course.getId());
+        dto.setTitle(course.getTitle());
+        dto.setDescription(course.getDescription());
+        dto.setInstructor(course.getInstructor());
+        return dto;
     }
 
     private Course mapToEntity(CourseDTO dto) {
-        return Course.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .instructor(dto.getInstructor())
-                .build();
+        Course course = new Course();
+        course.setId(dto.getId());
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setInstructor(dto.getInstructor());
+        return course;
     }
 
     @Override
